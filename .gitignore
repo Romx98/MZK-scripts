@@ -26,15 +26,8 @@ hs_err_pid*
 *.iml
 *.ipr
 *.iws
-.idea/
+.idea
 
 # Gradle
-*.gradle~
 .gradle
 build
-classes
-gradle/wrapper
-gradlew*
-
-**/build
-**/out
