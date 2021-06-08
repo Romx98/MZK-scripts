@@ -1,24 +1,24 @@
 package cz.mzk.fedora.documentcorrection;
 
 import org.apache.tomcat.util.codec.binary.Base64;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.http.*;
 import org.springframework.web.client.RestTemplate;
-import org.w3c.dom.Document;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
+import org.w3c.dom.*;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
 import javax.xml.xpath.*;
 import java.io.IOException;
 import java.io.StringReader;
+import java.io.StringWriter;
 import java.util.Objects;
 
 public class RestClient {
@@ -27,11 +27,11 @@ public class RestClient {
     private final HttpEntity<String> httpEntity;
     private final RestTemplate restTemplate;
     private final DocumentBuilder xmlParser;
-    //private final Transformer xmlTransformer;
+    private final Transformer xmlTransformer;
     private final XPathExpression xmlPathExp;
 
     public RestClient(String fh, String fu, String fp)
-            throws ParserConfigurationException, XPathExpressionException {
+            throws ParserConfigurationException, XPathExpressionException, TransformerException {
         fedoraHost = fh;
         restTemplate = new RestTemplate();
         HttpHeaders httpHeaders = createHttpHeaders(fu, fp);
@@ -44,6 +44,9 @@ public class RestClient {
         XPathFactory xFactory = XPathFactory.newInstance();
         XPath xmlPath = xFactory.newXPath();
         xmlPathExp = xmlPath.compile("//*[local-name() = 'isMemberOfCollection']");
+
+        TransformerFactory tFactory = TransformerFactory.newInstance();
+        xmlTransformer = tFactory.newTransformer();
     }
 
     public Document removeAllVC(Document doc, String vc) throws XPathExpressionException {
@@ -63,7 +66,6 @@ public class RestClient {
         }
         return doc;
     }
-
 
     public void printAllVC(Document doc) throws XPathExpressionException {
         if (doc == null) { return; }
@@ -100,6 +102,13 @@ public class RestClient {
         HttpHeaders headers = new HttpHeaders();
         headers.add("Authorization", "Basic " + encodeCredentials);
         return headers;
+    }
+
+    public String docToStr(Document doc) throws TransformerException {
+        StreamResult streamResult = new StreamResult(new StringWriter());
+        DOMSource domSource = new DOMSource(doc);
+        xmlTransformer.transform(domSource, streamResult);
+        return streamResult.getWriter().toString();
     }
 
     private String getFullFormatVC(String vc) {
