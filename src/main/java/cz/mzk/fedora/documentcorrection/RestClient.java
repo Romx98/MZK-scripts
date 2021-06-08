@@ -5,6 +5,7 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
@@ -46,11 +47,14 @@ public class RestClient {
     }
 
     public Document removeAllVC(Document doc, String vc) throws XPathExpressionException {
+        if (doc == null) { return null; }
+
         String uuidVC = getFullFormatVC(vc);
         NodeList nodes = (NodeList) xmlPathExp.evaluate(doc, XPathConstants.NODESET);
         for (int i = 0; i < nodes.getLength(); i++) {
             Node node = nodes.item(i);
-            if (node.getAttributes().item(0).getTextContent().equals(uuidVC)) {
+            if (node.getAttributes().item(0).getTextContent().equals(uuidVC) ||
+                node.getAttributes().item(0).getTextContent().isEmpty()) {
                 Node parent = node.getParentNode();
                 if (parent != null) {
                     parent.removeChild(node);
@@ -65,10 +69,10 @@ public class RestClient {
         if (doc == null) { return; }
 
         NodeList nodes = (NodeList) xmlPathExp.evaluate(doc, XPathConstants.NODESET);
-        System.out.println(nodes.getLength());
+        System.out.println("Nodes length: " + nodes.getLength());
         for (int i = 0; i < nodes.getLength(); i++) {
             Node node = nodes.item(i);
-            System.out.println(node.getAttributes().item(0).getTextContent());
+            System.out.println("Node attribute: " + node.getAttributes().item(0).getTextContent());
         }
     }
 
@@ -78,12 +82,14 @@ public class RestClient {
 
     // get fxml from fedora and return DOM document
     private Document getFedoraResource(String url) {
-        ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, httpEntity, String.class);
-        String str = Objects.requireNonNull(response.getBody());
         try {
+            ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, httpEntity, String.class);
+            String str = Objects.requireNonNull(response.getBody());
             return xmlParser.parse(new InputSource(new StringReader(str)));
         } catch (SAXException | IOException e) {
             e.printStackTrace();
+        } catch (RuntimeException e) {
+            e.getMessage();
         }
         return null;
     }

@@ -19,6 +19,9 @@ public class RunRestClient {
 
         Document doc = restClient.getFoxmlByUuid(uuid);
         restClient.printAllVC(doc);
+
+        Document newDoc = restClient.removeAllVC(doc, vc);
+        restClient.printAllVC(newDoc);
     }
 
 }
