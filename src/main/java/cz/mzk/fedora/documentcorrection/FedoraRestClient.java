@@ -38,29 +38,30 @@ public class FedoraRestClient {
         httpEntity = new HttpEntity<>(httpHeaders);
 
         DocumentBuilderFactory factory = DocumentBuilderFactory.newDefaultInstance();
-        factory.setNamespaceAware(true);
+        //factory.setNamespaceAware(true);
         xmlParser = factory.newDocumentBuilder();
 
         XPathFactory xFactory = XPathFactory.newInstance();
         XPath xmlPath = xFactory.newXPath();
-        xmlPathExp = xmlPath.compile("//*[local-name() = 'isMemberOfCollection']");
+        xmlPathExp = xmlPath.compile("//*[local-name() = 'isMemberOfCollection']/@resource");
 
         TransformerFactory tFactory = TransformerFactory.newInstance();
         xmlTransformer = tFactory.newTransformer();
     }
 
     public Document removeVc(Document doc, String vc) throws XPathExpressionException {
-        if (doc == null) { return null; }
+        if ((doc != null) && (vc != null)) {
+            String uuidVc = getFullFormatVC(vc);
+            NodeList nodes = (NodeList) xmlPathExp.evaluate(doc, XPathConstants.NODESET);
 
-        String uuidVC = getFullFormatVC(vc);
-        NodeList nodes = (NodeList) xmlPathExp.evaluate(doc, XPathConstants.NODESET);
-        for (int i = 0; i < nodes.getLength(); i++) {
-            Node node = nodes.item(i);
-            if (node.getAttributes().item(0).getTextContent().equals(uuidVC) ||
-                node.getAttributes().item(0).getTextContent().isEmpty()) {
-                Node parent = node.getParentNode();
-                if (parent != null) {
-                    parent.removeChild(node);
+            for (int i = 0; i < nodes.getLength(); i++) {
+                Node node = nodes.item(i);
+                if (node.getTextContent().equals(uuidVc)) {
+                    Attr attr = (Attr) node;
+                    Node nodeOwner = attr.getOwnerElement();
+                    if (nodeOwner.getParentNode() != null) {
+                        nodeOwner.getParentNode().removeChild(nodeOwner);
+                    }
                 }
             }
         }
@@ -68,13 +69,14 @@ public class FedoraRestClient {
     }
 
     public void printAllVC(Document doc) throws XPathExpressionException {
-        if (doc == null) { return; }
+        if (doc != null) {
+            NodeList nodes = (NodeList) xmlPathExp.evaluate(doc, XPathConstants.NODESET);
+            System.out.println("Nodes length: " + nodes.getLength());
 
-        NodeList nodes = (NodeList) xmlPathExp.evaluate(doc, XPathConstants.NODESET);
-        System.out.println("Nodes length: " + nodes.getLength());
-        for (int i = 0; i < nodes.getLength(); i++) {
-            Node node = nodes.item(i);
-            System.out.println("Node attribute: " + node.getAttributes().item(0).getTextContent());
+            for (int i = 0; i < nodes.getLength(); i++) {
+                Node node = nodes.item(i);
+                System.out.println(node.getTextContent());
+            }
         }
     }
 
