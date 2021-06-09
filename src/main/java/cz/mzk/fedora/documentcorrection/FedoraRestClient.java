@@ -21,7 +21,7 @@ import java.io.StringReader;
 import java.io.StringWriter;
 import java.util.Objects;
 
-public class RestClient {
+public class FedoraRestClient {
 
     private final String fedoraHost;
     private final HttpEntity<String> httpEntity;
@@ -30,7 +30,7 @@ public class RestClient {
     private final Transformer xmlTransformer;
     private final XPathExpression xmlPathExp;
 
-    public RestClient(String fh, String fu, String fp)
+    public FedoraRestClient(String fh, String fu, String fp)
             throws ParserConfigurationException, XPathExpressionException, TransformerException {
         fedoraHost = fh;
         restTemplate = new RestTemplate();
@@ -49,7 +49,7 @@ public class RestClient {
         xmlTransformer = tFactory.newTransformer();
     }
 
-    public Document removeAllVC(Document doc, String vc) throws XPathExpressionException {
+    public Document removeVc(Document doc, String vc) throws XPathExpressionException {
         if (doc == null) { return null; }
 
         String uuidVC = getFullFormatVC(vc);

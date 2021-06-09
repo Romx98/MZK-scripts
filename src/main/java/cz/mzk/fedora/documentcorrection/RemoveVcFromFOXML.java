@@ -6,7 +6,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerException;
 import javax.xml.xpath.XPathExpressionException;
 
-public class RunRestClient {
+public class RemoveVcFromFOXML {
 
     public static void main(String[] args)
             throws ParserConfigurationException, XPathExpressionException, TransformerException {
@@ -16,13 +16,13 @@ public class RunRestClient {
         String uuid = "";
         String vc = "";
 
-        RestClient restClient = new RestClient(fh, fu, fp);
+        FedoraRestClient fedoraRestClient = new FedoraRestClient(fh, fu, fp);
 
-        Document doc = restClient.getFoxmlByUuid(uuid);
-        System.out.println(restClient.docToStr(doc));
+        Document doc = fedoraRestClient.getFoxmlByUuid(uuid);
+        System.out.println(fedoraRestClient.docToStr(doc));
 
-        Document newDoc = restClient.removeAllVC(doc, vc);
-        System.out.println(restClient.docToStr(newDoc));
+        Document newDoc = fedoraRestClient.removeVc(doc, vc);
+        System.out.println(fedoraRestClient.docToStr(newDoc));
     }
 
 }
