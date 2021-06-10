@@ -5,6 +5,7 @@ import org.w3c.dom.Document;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerException;
 import javax.xml.xpath.XPathExpressionException;
+import java.util.Optional;
 
 public class RemoveVcFromFOXML {
 
@@ -18,11 +19,11 @@ public class RemoveVcFromFOXML {
 
         FedoraRestClient fedoraRestClient = new FedoraRestClient(fh, fu, fp);
 
-        Document doc = fedoraRestClient.getFoxmlByUuid(uuid);
+        Optional<Document> doc = fedoraRestClient.getFoxmlByUuid(uuid);
         //System.out.println(fedoraRestClient.docToStr(doc));
 
-        Document newDoc = fedoraRestClient.removeVc(doc, vc);
-        //System.out.println(fedoraRestClient.docToStr(newDoc));
+        Optional<Document> newDoc = fedoraRestClient.removeVc(doc, vc);
+        System.out.println(fedoraRestClient.docToStr(newDoc));
     }
 
 }

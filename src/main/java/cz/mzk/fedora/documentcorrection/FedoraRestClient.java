@@ -2,6 +2,7 @@ package cz.mzk.fedora.documentcorrection;
 
 import org.apache.tomcat.util.codec.binary.Base64;
 import org.springframework.http.*;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.w3c.dom.*;
 import org.xml.sax.InputSource;
@@ -20,6 +21,7 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.util.Objects;
+import java.util.Optional;
 
 public class FedoraRestClient {
 
@@ -49,10 +51,11 @@ public class FedoraRestClient {
         xmlTransformer = tFactory.newTransformer();
     }
 
-    public Document removeVc(Document doc, String vc) throws XPathExpressionException {
-        if ((doc != null) && (vc != null)) {
+    public Optional<Document> removeVc(Optional<Document> doc, String vc)
+            throws XPathExpressionException {
+        if ((doc.isPresent()) && (vc != null)) {
             String uuidVc = getFullFormatVC(vc);
-            NodeList nodes = (NodeList) xmlPathExp.evaluate(doc, XPathConstants.NODESET);
+            NodeList nodes = (NodeList) xmlPathExp.evaluate(doc.get(), XPathConstants.NODESET);
 
             for (int i = 0; i < nodes.getLength(); i++) {
                 Node node = nodes.item(i);
@@ -68,8 +71,8 @@ public class FedoraRestClient {
         return doc;
     }
 
-    public void printAllVC(Document doc) throws XPathExpressionException {
-        if (doc != null) {
+    public void printAllVC(Optional<Document> doc) throws XPathExpressionException {
+        if (doc.isPresent()) {
             NodeList nodes = (NodeList) xmlPathExp.evaluate(doc, XPathConstants.NODESET);
             System.out.println("Nodes length: " + nodes.getLength());
 
@@ -80,22 +83,24 @@ public class FedoraRestClient {
         }
     }
 
-    public Document getFoxmlByUuid(String uuid) {
+    public Optional<Document> getFoxmlByUuid(String uuid) {
         return getFedoraResource(fedoraHost + "/objects/" + uuid + "/objectXML");
     }
 
     // get fxml from fedora and return DOM document
-    private Document getFedoraResource(String url) {
+    private Optional<Document> getFedoraResource(String url) {
+        Document responseDoc = null;
+
         try {
             ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, httpEntity, String.class);
             String str = Objects.requireNonNull(response.getBody());
-            return xmlParser.parse(new InputSource(new StringReader(str)));
+            responseDoc =  xmlParser.parse(new InputSource(new StringReader(str)));
         } catch (SAXException | IOException e) {
             e.printStackTrace();
-        } catch (RuntimeException e) {
+        } catch (HttpClientErrorException e) {
             e.getMessage();
         }
-        return null;
+        return Optional.ofNullable(responseDoc);
     }
 
     private HttpHeaders createHttpHeaders(String fu, String fp) {
@@ -106,11 +111,16 @@ public class FedoraRestClient {
         return headers;
     }
 
-    public String docToStr(Document doc) throws TransformerException {
-        StreamResult streamResult = new StreamResult(new StringWriter());
-        DOMSource domSource = new DOMSource(doc);
-        xmlTransformer.transform(domSource, streamResult);
-        return streamResult.getWriter().toString();
+    public Optional<String> docToStr(Optional<Document> doc) throws TransformerException {
+        String str = null;
+
+        if (doc.isPresent()) {
+            StreamResult streamResult = new StreamResult(new StringWriter());
+            DOMSource domSource = new DOMSource(doc.get());
+            xmlTransformer.transform(domSource, streamResult);
+            str = streamResult.getWriter().toString();
+        }
+        return Optional.ofNullable(str);
     }
 
     private String getFullFormatVC(String vc) {
