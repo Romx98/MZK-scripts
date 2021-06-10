@@ -102,7 +102,7 @@ public class FedoraRestClient {
         }
         return Optional.ofNullable(responseDoc);
     }
-
+    
     private HttpHeaders createHttpHeaders(String fu, String fp) {
         String credentials = fu + ":" + fp;
         String encodeCredentials = new String(Base64.encodeBase64(credentials.getBytes()));
