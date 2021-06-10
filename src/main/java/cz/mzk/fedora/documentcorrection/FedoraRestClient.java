@@ -1,9 +1,11 @@
 package cz.mzk.fedora.documentcorrection;
 
+import cz.mzk.fedora.model.DataStreams;
 import org.apache.tomcat.util.codec.binary.Base64;
 import org.springframework.http.*;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
 import org.w3c.dom.*;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -20,6 +22,8 @@ import javax.xml.xpath.*;
 import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -27,6 +31,7 @@ public class FedoraRestClient {
 
     private final String fedoraHost;
     private final HttpEntity<String> httpEntity;
+    private final HttpHeaders httpHeaders;
     private final RestTemplate restTemplate;
     private final DocumentBuilder xmlParser;
     private final Transformer xmlTransformer;
@@ -36,7 +41,7 @@ public class FedoraRestClient {
             throws ParserConfigurationException, XPathExpressionException, TransformerException {
         fedoraHost = fh;
         restTemplate = new RestTemplate();
-        HttpHeaders httpHeaders = createHttpHeaders(fu, fp);
+        httpHeaders = createHttpHeaders(fu, fp);
         httpEntity = new HttpEntity<>(httpHeaders);
 
         DocumentBuilderFactory factory = DocumentBuilderFactory.newDefaultInstance();
@@ -87,7 +92,6 @@ public class FedoraRestClient {
         return getFedoraResource(fedoraHost + "/objects/" + uuid + "/objectXML");
     }
 
-    // get fxml from fedora and return DOM document
     private Optional<Document> getFedoraResource(String url) {
         Document responseDoc = null;
 
@@ -102,12 +106,38 @@ public class FedoraRestClient {
         }
         return Optional.ofNullable(responseDoc);
     }
-    
+
     private HttpHeaders createHttpHeaders(String fu, String fp) {
         String credentials = fu + ":" + fp;
         String encodeCredentials = new String(Base64.encodeBase64(credentials.getBytes()));
         HttpHeaders headers = new HttpHeaders();
         headers.add("Authorization", "Basic " + encodeCredentials);
+        return headers;
+    }
+
+    public void setRelsExt(String uuid, Optional<Document> relsExt)
+            throws IOException {
+        if (relsExt.isPresent()) {
+            HttpEntity<Object> entity = docToEntity(relsExt.get(), DataStreams.RELS_EXT.mimeType);
+            setDataStream(uuid, DataStreams.RELS_EXT, entity);
+        }
+    }
+
+    public void setDC(String uuid, Optional<Document> relsExt)
+            throws IOException {
+        if (relsExt.isPresent()) {
+            HttpEntity<Object> entity = docToEntity(relsExt.get(), DataStreams.DC.mimeType);
+            setDataStream(uuid, DataStreams.DC, entity);
+        }
+    }
+
+    private HttpEntity<Object> docToEntity(Document doc, String mimeType) {
+        return new HttpEntity<>(doc, createMimeTypeHeaders(mimeType));
+    }
+
+    private HttpHeaders createMimeTypeHeaders(String mimeType) {
+        HttpHeaders headers = new HttpHeaders(httpHeaders);
+        headers.setContentType(MediaType.parseMediaType(mimeType));
         return headers;
     }
 
@@ -125,5 +155,32 @@ public class FedoraRestClient {
 
     private String getFullFormatVC(String vc) {
         return "info:fedora/" + vc;
+    }
+
+    private void setDataStream(String uuid, DataStreams ds, HttpEntity<Object> entity)
+            throws IOException {
+        String url = fedoraHost + "/objects/" + uuid + "/datastreams/" + ds.name;
+
+        Map<String, String> uriParam = new HashMap<>() {{
+            put("mimoType", ds.mimeType);
+            put("versionable", ds.versionable);
+            put("controlGroup", ds.controlGroup);
+            put("state", ds.state);
+        }};
+        url = buildUri(url, uriParam);
+
+        ResponseEntity<String> responseEntity = restTemplate.postForEntity(url, entity, String.class);
+        if (!responseEntity.getStatusCode().equals(HttpStatus.CREATED)) {
+            throw new IOException("POST " + ds.name + "for " + uuid +
+                    ": Cannot set datastream, unexpected code " + responseEntity.getStatusCode());
+        }
+    }
+
+    private String buildUri(String url, Map<String, ?> params) {
+        UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(url);
+        for (Map.Entry<String, ?> entry : params.entrySet()) {
+            builder.queryParam(entry.getKey(), entry.getValue());
+        }
+        return builder.encode().build().toUri().toString();
     }
 }
