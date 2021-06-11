@@ -4,16 +4,13 @@ import java.util.Optional;
 
 public enum DataStreams {
 
-    DC("DC", "text/xml", "false", "X", "A"),
     RELS_EXT("RELS-EXT", "application/rdf+xml" , "true", "X", "A");
-//
 
     public String name;
     public String mimeType;
     public String versionable;
     public String controlGroup;
     public String state;
-
 
     DataStreams(String dsName, String dsMimeType,
                 String dsVersionable, String dsControlGroup, String dsState) {
@@ -34,5 +31,4 @@ public enum DataStreams {
         }
         return Optional.ofNullable(dataStreams);
     }
-
 }

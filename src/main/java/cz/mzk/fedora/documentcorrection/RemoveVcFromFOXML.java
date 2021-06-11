@@ -19,23 +19,15 @@ public class RemoveVcFromFOXML {
         String vc = "";
 
         FedoraRestClient fedoraRestClient = new FedoraRestClient(fh, fu, fp);
-
-        Optional<Document> doc = fedoraRestClient.getFoxmlByUuid(uuid);
-        //System.out.println(fedoraRestClient.docToStr(doc));
+        Optional<Document> doc = fedoraRestClient.getRelsExt(uuid);
 
         if (doc.isPresent()) {
             doc = fedoraRestClient.removeVc(doc.get(), vc);
-            //System.out.println(fedoraRestClient.docToStr(newDoc.get()));
-
+            if (doc.isPresent()) {
+                System.out.println(fedoraRestClient.docToStr(doc.get()));
+                fedoraRestClient.setRelsExt(uuid, doc.get());
+            }
         }
-
-        if (doc.isPresent()) {
-            fedoraRestClient.setRelsExt(uuid, doc.get());
-        }
-
-
-
-
     }
 
 }

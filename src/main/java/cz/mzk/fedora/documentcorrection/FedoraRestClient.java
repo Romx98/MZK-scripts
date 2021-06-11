@@ -93,6 +93,14 @@ public class FedoraRestClient {
         return getFedoraResource(fedoraHost + "/objects/" + uuid + "/objectXML");
     }
 
+    public Optional<Document> getRelsExt(String uuid) {
+        return getDataStream(uuid, DataStreams.RELS_EXT.name);
+    }
+
+    private Optional<Document> getDataStream(String uuid, String dsName) {
+        return getFedoraResource(fedoraHost + "/get/" + uuid + "/" + dsName);
+    }
+
     private Optional<Document> getFedoraResource(String url) {
         Document responseDoc = null;
 
