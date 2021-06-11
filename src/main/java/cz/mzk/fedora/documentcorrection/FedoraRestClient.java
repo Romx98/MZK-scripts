@@ -4,6 +4,7 @@ import cz.mzk.fedora.model.DataStreams;
 import org.apache.tomcat.util.codec.binary.Base64;
 import org.springframework.http.*;
 import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import org.w3c.dom.*;
@@ -56,11 +57,11 @@ public class FedoraRestClient {
         xmlTransformer = tFactory.newTransformer();
     }
 
-    public Optional<Document> removeVc(Optional<Document> doc, String vc)
+    public Optional<Document> removeVc(Document doc, String vc)
             throws XPathExpressionException {
-        if ((doc.isPresent()) && (vc != null)) {
+        if ((doc != null) && (vc != null)) {
             String uuidVc = getFullFormatVC(vc);
-            NodeList nodes = (NodeList) xmlPathExp.evaluate(doc.get(), XPathConstants.NODESET);
+            NodeList nodes = (NodeList) xmlPathExp.evaluate(doc, XPathConstants.NODESET);
 
             for (int i = 0; i < nodes.getLength(); i++) {
                 Node node = nodes.item(i);
@@ -73,11 +74,11 @@ public class FedoraRestClient {
                 }
             }
         }
-        return doc;
+        return Optional.ofNullable(doc);
     }
 
-    public void printAllVC(Optional<Document> doc) throws XPathExpressionException {
-        if (doc.isPresent()) {
+    public void printAllVC(Document doc) throws XPathExpressionException {
+        if (doc != null) {
             NodeList nodes = (NodeList) xmlPathExp.evaluate(doc, XPathConstants.NODESET);
             System.out.println("Nodes length: " + nodes.getLength());
 
@@ -115,24 +116,26 @@ public class FedoraRestClient {
         return headers;
     }
 
-    public void setRelsExt(String uuid, Optional<Document> relsExt)
-            throws IOException {
-        if (relsExt.isPresent()) {
-            HttpEntity<Object> entity = docToEntity(relsExt.get(), DataStreams.RELS_EXT.mimeType);
-            setDataStream(uuid, DataStreams.RELS_EXT, entity);
+    public void setRelsExt(String uuid, Document relsExt)
+            throws IOException, TransformerException {
+        if (relsExt != null) {
+            Optional<HttpEntity<Object>> entity = docStrEntity(relsExt, DataStreams.RELS_EXT.mimeType);
+            if (entity.isPresent()) {
+                setDataStream(uuid, DataStreams.RELS_EXT, entity.get());
+            }
         }
     }
 
-    public void setDC(String uuid, Optional<Document> relsExt)
-            throws IOException {
-        if (relsExt.isPresent()) {
-            HttpEntity<Object> entity = docToEntity(relsExt.get(), DataStreams.DC.mimeType);
-            setDataStream(uuid, DataStreams.DC, entity);
-        }
-    }
+    private Optional<HttpEntity<Object>> docStrEntity(Document doc, String mimeType) throws TransformerException {
+        HttpEntity<Object> entity = null;
 
-    private HttpEntity<Object> docToEntity(Document doc, String mimeType) {
-        return new HttpEntity<>(doc, createMimeTypeHeaders(mimeType));
+        if (doc != null) {
+            Optional<String> entityBody = docToStr(doc);
+            if (entityBody.isPresent()) {
+                entity = new HttpEntity<>(entityBody.get(), createMimeTypeHeaders(mimeType));
+            }
+        }
+        return Optional.ofNullable(entity);
     }
 
     private HttpHeaders createMimeTypeHeaders(String mimeType) {
@@ -141,12 +144,12 @@ public class FedoraRestClient {
         return headers;
     }
 
-    public Optional<String> docToStr(Optional<Document> doc) throws TransformerException {
+    public Optional<String> docToStr(Document doc) throws TransformerException {
         String str = null;
 
-        if (doc.isPresent()) {
+        if (doc != null) {
             StreamResult streamResult = new StreamResult(new StringWriter());
-            DOMSource domSource = new DOMSource(doc.get());
+            DOMSource domSource = new DOMSource(doc);
             xmlTransformer.transform(domSource, streamResult);
             str = streamResult.getWriter().toString();
         }
@@ -159,20 +162,23 @@ public class FedoraRestClient {
 
     private void setDataStream(String uuid, DataStreams ds, HttpEntity<Object> entity)
             throws IOException {
-        String url = fedoraHost + "/objects/" + uuid + "/datastreams/" + ds.name;
+        if (entity != null) {
+            String url = fedoraHost + "/objects/" + uuid + "/datastreams/" + ds.name;
 
-        Map<String, String> uriParam = new HashMap<>() {{
-            put("mimoType", ds.mimeType);
-            put("versionable", ds.versionable);
-            put("controlGroup", ds.controlGroup);
-            put("state", ds.state);
-        }};
-        url = buildUri(url, uriParam);
+            Map<String, String> uriParam = new HashMap<>() {{
+                put("mimeType", ds.mimeType);
+                put("versionable", ds.versionable);
+                put("controlGroup", ds.controlGroup);
+                put("state", ds.state);
+            }};
+            url = buildUri(url, uriParam);
 
-        ResponseEntity<String> responseEntity = restTemplate.postForEntity(url, entity, String.class);
-        if (!responseEntity.getStatusCode().equals(HttpStatus.CREATED)) {
-            throw new IOException("POST " + ds.name + "for " + uuid +
-                    ": Cannot set datastream, unexpected code " + responseEntity.getStatusCode());
+            ResponseEntity<String> responseEntity = restTemplate.postForEntity(url, entity, String.class);
+
+            if (!responseEntity.getStatusCode().equals(HttpStatus.CREATED)) {
+                throw new IOException("POST " + ds.name + "for " + uuid +
+                        ": Cannot set datastream, unexpected code " + responseEntity.getStatusCode());
+            }
         }
     }
 
