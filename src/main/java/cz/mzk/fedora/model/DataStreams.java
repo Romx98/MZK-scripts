@@ -21,7 +21,7 @@ public enum DataStreams {
         state = dsState;
     }
 
-    public Optional<DataStreams> getDataStreams(String dsName) {
+    public DataStreams getDataStreams(String dsName) {
         DataStreams dataStreams = null;
 
         for (DataStreams ds : DataStreams.values()) {
@@ -29,6 +29,6 @@ public enum DataStreams {
                 dataStreams = ds;
             }
         }
-        return Optional.ofNullable(dataStreams);
+        return dataStreams;
     }
 }
