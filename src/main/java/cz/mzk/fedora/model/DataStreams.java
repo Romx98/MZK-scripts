@@ -4,7 +4,7 @@ import java.util.Optional;
 
 public enum DataStreams {
 
-    RELS_EXT("RELS-EXT", "application/rdf+xml" , "true", "X", "A");
+    RELS_EXT("RELS-EXT", "text/xml" , "true", "X", "A");
 
     public String name;
     public String mimeType;
