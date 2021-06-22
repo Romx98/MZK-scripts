@@ -6,9 +6,12 @@ import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.HttpSolrClient;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrDocumentList;
+import org.apache.solr.common.SolrInputDocument;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
+import java.util.Collections;
+import java.util.Date;
 
 public class SolrVcRecords {
 
@@ -20,7 +23,19 @@ public class SolrVcRecords {
     }
 
     public void printSolrResponse(String uuid) throws SolrServerException, IOException {
-        SolrDocumentList doc = querySolrClient(uuid).getResults();
+
+        QueryResponse queryResponse = querySolrClient(uuid);
+        SolrDocumentList docs = queryResponse.getResults();
+        System.out.println(docs);
+        System.out.println(docs.get(1));
+        System.out.println(docs.get(2));
+        System.out.println(docs.get(3));
+
+    }
+
+    public void removeVc(String idVc, String uuid) {
+        SolrQuery query = createSolrQuery(uuid);
+        // sem nejaka metoda, ktora spracuje query a tak...
     }
 
     public QueryResponse querySolrClient(String uuid) throws SolrServerException, IOException {
@@ -30,9 +45,19 @@ public class SolrVcRecords {
     private SolrQuery createSolrQuery(String uuid) {
         String allPartsQueryStr = "pid_path:/" + uuid.trim() + ".*/";
         SolrQuery solrQuery = new SolrQuery(allPartsQueryStr);
-        solrQuery.add("PID");
-        solrQuery.add("collection");
+        solrQuery.addField("PID");
+        solrQuery.addField("collection");
         return solrQuery;
+    }
+
+    private void modifyRecordInSolr(String uuid, Object collection, String modifier)
+            throws SolrServerException, IOException {
+        SolrInputDocument inputDoc = new SolrInputDocument();
+        inputDoc.addField("PID", uuid);
+        inputDoc.addField("collection", Collections.singletonMap(modifier, collection));
+
+        inputDoc.addField("modified_date", Collections.singletonMap("set", dateFormat.format(new Date())));
+        solrClient.add(inputDoc);
     }
 
     private SolrClient buildSolrClient(String solrHost) {

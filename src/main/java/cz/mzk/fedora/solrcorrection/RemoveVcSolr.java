@@ -9,7 +9,7 @@ import java.io.IOException;
 public class RemoveVcSolr {
 
     public static void main(String[] args) throws SolrServerException, IOException {
-        String sorlHost = "";
+        String sorlHost = System.getenv("SH");
         String uuid = "";
 
         SolrVcRecords solrVcRecords = new SolrVcRecords(sorlHost);
