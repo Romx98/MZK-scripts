@@ -8,15 +8,15 @@ import java.io.IOException;
 public class RemoveVcSolr {
 
     public static void main(String[] args) throws SolrServerException, IOException {
-        String solrHost = System.getenv("SH");
+        String solrHost = System.getenv("SOLR_HOST");
         String vc = "";
         String uuid = "";
 
-        SolrClient solrClient = SolrClientApi.createSolrClient(solrHost);
+        SolrClient solrClient = SolrClientUtils.createSolrClient(solrHost);
 
-        SolrVcRecords solrVcRecords = new SolrVcRecords(solrClient);
+        SolrVcService solrVcRecords = new SolrVcService(solrClient);
         solrVcRecords.removeVc(vc, uuid);
-        SolrClientApi.commitAndClose(solrClient);
+        SolrClientUtils.commitAndClose(solrClient);
 
     }
 }

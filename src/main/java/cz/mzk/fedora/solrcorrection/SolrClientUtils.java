@@ -10,8 +10,9 @@ import org.apache.solr.common.SolrDocumentList;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.function.Consumer;
+import java.util.stream.Stream;
 
-public class SolrClientApi {
+public class SolrClientUtils {
 
     private static final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
 
@@ -30,15 +31,7 @@ public class SolrClientApi {
         if(numFound != 0) {
             solrQuery.setRows(Math.toIntExact(numFound));
             SolrDocumentList docs = queryForSolrDocList(solrQuery, solrClient);
-            forEachDoc(docs, consumer);
-        } else {
-            System.out.println("NumFound is 0!");
-        }
-    }
-
-    public static void forEachDoc(SolrDocumentList docs, Consumer<SolrDocument> consumer) {
-        for (SolrDocument doc : docs) {
-            consumer.accept(doc);
+            docs.forEach(consumer);
         }
     }
 

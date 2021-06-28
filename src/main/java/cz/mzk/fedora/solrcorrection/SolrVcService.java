@@ -1,5 +1,6 @@
 package cz.mzk.fedora.solrcorrection;
 
+import cz.mzk.fedora.model.SolrField;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
@@ -13,29 +14,29 @@ import java.util.Date;
 import java.util.List;
 import java.util.function.Consumer;
 
-public class SolrVcRecords {
+public class SolrVcService {
 
     private final SolrClient solrClient;
     private final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
 
-    public SolrVcRecords(SolrClient solrClient) {
+    public SolrVcService(SolrClient solrClient) {
         this.solrClient = solrClient;
     }
 
     public void removeVc(String idVc, String uuid) throws SolrServerException, IOException {
-        SolrQuery query = createSolrQuery(uuid);
-        SolrClientApi.singleRequestAndApply(query, solrClient, createUnlinkConsumer(idVc));
+        SolrQuery query = createQueryByPidPath(uuid);
+        SolrClientUtils.singleRequestAndApply(query, solrClient, createUnlinkConsumer(idVc));
     }
 
     @SuppressWarnings("unchecked")
     private Consumer<SolrDocument> createUnlinkConsumer(String idVc) {
         return solrDoc -> {
-            List<String> collections = (List<String>) solrDoc.getFieldValue("collection");
+            List<String> collections = (List<String>) solrDoc.getFieldValue(SolrField.COLLECTION);
 
             if ((collections != null) && (collections.contains(idVc))) {
                 collections.remove(idVc);
                 try {
-                    String uuid = (String) solrDoc.getFieldValue("PID");
+                    String uuid = (String) solrDoc.getFieldValue(SolrField.UUID);
                     setVcFor(uuid, collections);
                 } catch (SolrServerException | IOException e) {
                     e.printStackTrace();
@@ -44,25 +45,29 @@ public class SolrVcRecords {
         };
     }
 
-    private SolrQuery createSolrQuery(String uuid) {
-        String allPartsQueryStr = "pid_path:/" + uuid.trim() + ".*/";
+    private SolrQuery createQueryByPidPath(String uuid) {
+        String allPartsQueryStr = "root_pid:/" + uuid.trim() + ".*/";
         SolrQuery solrQuery = new SolrQuery(allPartsQueryStr);
-        solrQuery.addField("PID");
-        solrQuery.addField("collection");
+        solrQuery.addField(SolrField.UUID);
+        solrQuery.addField(SolrField.COLLECTION);
         return solrQuery;
     }
 
     public void setVcFor(String uuid, List<String> idVc) throws SolrServerException, IOException {
-        modifyRecordInSolr(uuid, idVc, "set");
+        changeCollection(uuid, idVc, "set");
     }
 
-    private void modifyRecordInSolr(String uuid, Object collection, String modifier)
+    private void changeCollection(String uuid, Object collectionList, String modifier)
             throws SolrServerException, IOException {
         SolrInputDocument inputDoc = new SolrInputDocument();
-        inputDoc.addField("PID", uuid);
-        inputDoc.addField("collection", Collections.singletonMap(modifier, collection));
+        inputDoc.addField(SolrField.UUID, uuid);
+        inputDoc.addField(SolrField.COLLECTION, Collections.singletonMap(modifier, collectionList));
 
-        inputDoc.addField("modified_date", Collections.singletonMap("set", dateFormat.format(new Date())));
+        updateModifiedDateNow(inputDoc);
         solrClient.add(inputDoc);
+    }
+
+    private void updateModifiedDateNow(SolrInputDocument inputDoc) {
+        inputDoc.addField(SolrField.MODIFIED_DATE, Collections.singletonMap("set", dateFormat.format(new Date())));
     }
 }
