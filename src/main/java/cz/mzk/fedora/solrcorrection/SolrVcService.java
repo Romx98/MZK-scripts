@@ -24,7 +24,7 @@ public class SolrVcService {
     }
 
     public void removeVc(String idVc, String uuid) throws SolrServerException, IOException {
-        SolrQuery query = createQueryByPidPath(uuid);
+        SolrQuery query = createQueryByRootUuid(uuid);
         SolrClientUtils.singleRequestAndApply(query, solrClient, createUnlinkConsumer(idVc));
     }
 
@@ -45,8 +45,8 @@ public class SolrVcService {
         };
     }
 
-    private SolrQuery createQueryByPidPath(String uuid) {
-        String allPartsQueryStr = "root_pid:/" + uuid.trim() + ".*/";
+    private SolrQuery createQueryByRootUuid(String uuid) {
+        String allPartsQueryStr = "root_pid:/" + uuid.trim() + "/";
         SolrQuery solrQuery = new SolrQuery(allPartsQueryStr);
         solrQuery.addField(SolrField.UUID);
         solrQuery.addField(SolrField.COLLECTION);

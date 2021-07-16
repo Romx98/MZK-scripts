@@ -14,9 +14,8 @@ public class RemoveVcSolr {
 
         SolrClient solrClient = SolrClientUtils.createSolrClient(solrHost);
 
-        SolrVcService solrVcRecords = new SolrVcService(solrClient);
-        solrVcRecords.removeVc(vc, uuid);
+        SolrVcService solrVcService = new SolrVcService(solrClient);
+        solrVcService.removeVc(vc, uuid);
         SolrClientUtils.commitAndClose(solrClient);
-
     }
 }
