@@ -17,7 +17,6 @@ import java.util.function.Consumer;
 public class SolrVcService {
 
     private final SolrClient solrClient;
-    private final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
 
     public SolrVcService(SolrClient solrClient) {
         this.solrClient = solrClient;
@@ -35,39 +34,37 @@ public class SolrVcService {
 
             if ((collections != null) && (collections.contains(idVc))) {
                 collections.remove(idVc);
+                String uuid = (String) solrDoc.getFieldValue(SolrField.UUID);
                 try {
-                    String uuid = (String) solrDoc.getFieldValue(SolrField.UUID);
                     setVcFor(uuid, collections);
                 } catch (SolrServerException | IOException e) {
-                    e.printStackTrace();
+                    System.out.println("Cannot apply changes to " + uuid
+                            + ", exception caught: '" + e.getMessage() + "'");
                 }
             }
         };
     }
 
     private SolrQuery createQueryByRootUuid(String uuid) {
-        String allPartsQueryStr = "root_pid:/" + uuid.trim() + "/";
+        String allPartsQueryStr = "root_pid:\"" + uuid.trim() + "\"";
         SolrQuery solrQuery = new SolrQuery(allPartsQueryStr);
         solrQuery.addField(SolrField.UUID);
         solrQuery.addField(SolrField.COLLECTION);
         return solrQuery;
     }
 
-    public void setVcFor(String uuid, List<String> idVc) throws SolrServerException, IOException {
-        changeCollection(uuid, idVc, "set");
-    }
-
-    private void changeCollection(String uuid, Object collectionList, String modifier)
-            throws SolrServerException, IOException {
+    private void setVcFor(String uuid, Object collectionList) throws SolrServerException, IOException {
         SolrInputDocument inputDoc = new SolrInputDocument();
-        inputDoc.addField(SolrField.UUID, uuid);
-        inputDoc.addField(SolrField.COLLECTION, Collections.singletonMap(modifier, collectionList));
 
-        updateModifiedDateNow(inputDoc);
+        inputDoc.addField(SolrField.UUID, uuid);
+        setSolrInInFieldValue(inputDoc, SolrField.COLLECTION, collectionList);
+        setSolrInInFieldValue(inputDoc, SolrField.MODIFIED_DATE, new Date());
+
         solrClient.add(inputDoc);
     }
 
-    private void updateModifiedDateNow(SolrInputDocument inputDoc) {
-        inputDoc.addField(SolrField.MODIFIED_DATE, Collections.singletonMap("set", dateFormat.format(new Date())));
+    private void setSolrInInFieldValue(SolrInputDocument inputDoc, String fieldKey, Object fieldValue) {
+        inputDoc.addField(fieldKey, Collections.singletonMap("set", fieldValue));
     }
+
 }
