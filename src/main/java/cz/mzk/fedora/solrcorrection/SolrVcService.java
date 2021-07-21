@@ -8,7 +8,6 @@ import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrInputDocument;
 
 import java.io.IOException;
-import java.text.SimpleDateFormat;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -57,13 +56,13 @@ public class SolrVcService {
         SolrInputDocument inputDoc = new SolrInputDocument();
 
         inputDoc.addField(SolrField.UUID, uuid);
-        setSolrInInFieldValue(inputDoc, SolrField.COLLECTION, collectionList);
-        setSolrInInFieldValue(inputDoc, SolrField.MODIFIED_DATE, new Date());
+        updateSolrFieldValue(inputDoc, SolrField.COLLECTION, collectionList);
+        updateSolrFieldValue(inputDoc, SolrField.MODIFIED_DATE, new Date());
 
         solrClient.add(inputDoc);
     }
 
-    private void setSolrInInFieldValue(SolrInputDocument inputDoc, String fieldKey, Object fieldValue) {
+    private void updateSolrFieldValue(SolrInputDocument inputDoc, String fieldKey, Object fieldValue) {
         inputDoc.addField(fieldKey, Collections.singletonMap("set", fieldValue));
     }
 
