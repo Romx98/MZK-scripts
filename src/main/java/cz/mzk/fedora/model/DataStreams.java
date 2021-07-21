@@ -1,7 +1,5 @@
 package cz.mzk.fedora.model;
 
-import java.util.Optional;
-
 public enum DataStreams {
 
     RELS_EXT("RELS-EXT", "application/rdf+xml" , "true", "X", "A");

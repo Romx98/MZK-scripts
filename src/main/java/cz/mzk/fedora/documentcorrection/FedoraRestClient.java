@@ -22,10 +22,7 @@ import javax.xml.xpath.*;
 import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 
 public class FedoraRestClient {
 
@@ -40,7 +37,7 @@ public class FedoraRestClient {
     public FedoraRestClient(String fh, String fu, String fp)
             throws ParserConfigurationException, XPathExpressionException, TransformerException {
         fedoraHost = fh;
-        restTemplate = new RestTemplate();
+        restTemplate = getConfiguredRestTemplate();
         httpHeaders = createHttpHeaders(fu, fp);
         httpEntity = new HttpEntity<>(httpHeaders);
 
@@ -176,5 +173,11 @@ public class FedoraRestClient {
             builder.queryParam(entry.getKey(), entry.getValue());
         }
         return builder.encode().build().toUri().toString();
+    }
+
+    private RestTemplate getConfiguredRestTemplate() {
+        RestTemplate restTemplate = new RestTemplate();
+        restTemplate.setInterceptors(Collections.singletonList(new PlusEncoderInterceptor()));
+        return restTemplate;
     }
 }

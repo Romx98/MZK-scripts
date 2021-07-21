@@ -12,9 +12,9 @@ public class RemoveVcFromFOXML {
 
     public static void main(String[] args)
             throws ParserConfigurationException, XPathExpressionException, TransformerException, IOException {
-        String fh = System.getenv("FH");
-        String fu = System.getenv("FU");
-        String fp = System.getenv("FP");
+        String fh = System.getenv("FEDORA_HOST");
+        String fu = System.getenv("FEDORA_USER");
+        String fp = System.getenv("FEDORA_PASSWD");
         String uuid = "";
         String vc = "";
 
