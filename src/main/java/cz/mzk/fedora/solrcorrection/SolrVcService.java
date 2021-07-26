@@ -8,7 +8,6 @@ import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrInputDocument;
 
 import java.io.IOException;
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.function.Consumer;
@@ -45,7 +44,8 @@ public class SolrVcService {
     }
 
     private SolrQuery createQueryByRootUuid(String uuid) {
-        String allPartsQueryStr = "root_pid:\"" + uuid.trim() + "\"";
+        String allPartsQueryStr = SolrClientUtils.wrapQueryStr(SolrField.UUID, uuid);
+
         SolrQuery solrQuery = new SolrQuery(allPartsQueryStr);
         solrQuery.addField(SolrField.UUID);
         solrQuery.addField(SolrField.COLLECTION);
@@ -56,14 +56,11 @@ public class SolrVcService {
         SolrInputDocument inputDoc = new SolrInputDocument();
 
         inputDoc.addField(SolrField.UUID, uuid);
-        updateSolrFieldValue(inputDoc, SolrField.COLLECTION, collectionList);
-        updateSolrFieldValue(inputDoc, SolrField.MODIFIED_DATE, new Date());
-
+        SolrClientUtils.updateSolrFieldValue(inputDoc, SolrField.COLLECTION, collectionList);
+        SolrClientUtils.updateSolrFieldValue(inputDoc, SolrField.MODIFIED_DATE, new Date());
         solrClient.add(inputDoc);
     }
 
-    private void updateSolrFieldValue(SolrInputDocument inputDoc, String fieldKey, Object fieldValue) {
-        inputDoc.addField(fieldKey, Collections.singletonMap("set", fieldValue));
-    }
+
 
 }

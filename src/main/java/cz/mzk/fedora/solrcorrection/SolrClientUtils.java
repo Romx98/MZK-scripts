@@ -6,9 +6,10 @@ import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.HttpSolrClient;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
+import org.apache.solr.common.SolrInputDocument;
 
 import java.io.IOException;
-import java.text.SimpleDateFormat;
+import java.util.Collections;
 import java.util.function.Consumer;
 
 public class SolrClientUtils {
@@ -30,6 +31,14 @@ public class SolrClientUtils {
     public static SolrDocumentList queryForSolrDocList(SolrQuery solrQuery, SolrClient solrClient)
             throws SolrServerException, IOException {
         return solrClient.query(solrQuery).getResults();
+    }
+
+    public static void updateSolrFieldValue(SolrInputDocument inputDoc, String fieldKey, Object fieldValue) {
+        inputDoc.addField(fieldKey, Collections.singletonMap("set", fieldValue));
+    }
+
+    public static String wrapQueryStr(String fieldKey, String fieldValue) {
+        return fieldKey + ":\"" + fieldValue.trim() + "\"";
     }
 
     public static void commitAndClose(SolrClient solrClient)
