@@ -1,4 +1,4 @@
-package cz.mzk.fedora.model;
+package cz.mzk.scripts.model;
 
 public enum DataStreams {
 

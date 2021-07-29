@@ -1,4 +1,4 @@
-package cz.mzk.fedora.solrcorrection;
+package cz.mzk.scripts.solr;
 
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrQuery;
@@ -41,9 +41,13 @@ public class SolrClientUtils {
         return fieldKey + ":\"" + fieldValue.trim() + "\"";
     }
 
+    public static String wrapFilterQueryStr(String fieldKey, String from, String to) {
+        return fieldKey + ":[" + from + " TO " + to + "]";
+    }
+
     public static void commitAndClose(SolrClient solrClient)
             throws SolrServerException, IOException {
         solrClient.commit();
-        solrClient.close();
+        //solrClient.close();
     }
 }

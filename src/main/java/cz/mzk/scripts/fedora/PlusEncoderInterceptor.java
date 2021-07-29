@@ -1,4 +1,4 @@
-package cz.mzk.fedora.documentcorrection;
+package cz.mzk.scripts.fedora;
 
 import org.springframework.http.HttpRequest;
 import org.springframework.http.client.ClientHttpRequestExecution;

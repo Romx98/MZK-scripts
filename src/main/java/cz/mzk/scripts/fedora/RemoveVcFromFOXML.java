@@ -1,4 +1,4 @@
-package cz.mzk.fedora.documentcorrection;
+package cz.mzk.scripts.fedora;
 
 import org.w3c.dom.Document;
 
@@ -11,22 +11,28 @@ import java.util.Optional;
 public class RemoveVcFromFOXML {
 
     public static void main(String[] args)
-            throws ParserConfigurationException, XPathExpressionException, TransformerException, IOException {
+            throws ParserConfigurationException, XPathExpressionException, TransformerException {
         String fh = System.getenv("FEDORA_HOST");
         String fu = System.getenv("FEDORA_USER");
         String fp = System.getenv("FEDORA_PASSWD");
-        String uuid = "";
+
         String vc = "";
+        String[] uuids = {""};
+
 
         FedoraRestClient fedoraRestClient = new FedoraRestClient(fh, fu, fp);
-        Optional<Document> doc = fedoraRestClient.getRelsExt(uuid);
 
-        if (doc.isPresent()) {
-            doc = fedoraRestClient.removeVc(doc.get(), vc);
+        for (String uuid : uuids) {
+            Optional<Document> doc = fedoraRestClient.getRelsExt(uuid);
+
             if (doc.isPresent()) {
-                fedoraRestClient.setRelsExt(uuid, doc.get());
+                doc = fedoraRestClient.removeVc(doc.get(), vc);
+                if (doc.isPresent()) {
+                    fedoraRestClient.setRelsExt(uuid, doc.get());
+                }
             }
         }
+
     }
 
 }

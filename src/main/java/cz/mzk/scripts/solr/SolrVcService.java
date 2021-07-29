@@ -1,6 +1,6 @@
-package cz.mzk.fedora.solrcorrection;
+package cz.mzk.scripts.solr;
 
-import cz.mzk.fedora.model.SolrField;
+import cz.mzk.scripts.model.SolrField;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;

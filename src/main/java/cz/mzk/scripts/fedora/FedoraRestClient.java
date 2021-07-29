@@ -1,6 +1,6 @@
-package cz.mzk.fedora.documentcorrection;
+package cz.mzk.scripts.fedora;
 
-import cz.mzk.fedora.model.DataStreams;
+import cz.mzk.scripts.model.DataStreams;
 import org.apache.tomcat.util.codec.binary.Base64;
 import org.springframework.http.*;
 import org.springframework.web.client.HttpClientErrorException;

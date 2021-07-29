@@ -1,4 +1,4 @@
-package cz.mzk.fedora.solrcorrection;
+package cz.mzk.scripts.solr;
 
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrServerException;
@@ -10,12 +10,15 @@ public class RemoveVcSolr {
     public static void main(String[] args) throws SolrServerException, IOException {
         String solrHost = System.getenv("SOLR_HOST");
         String vc = "";
-        String uuid = "";
+        String[] uuids = {""};
 
         SolrClient solrClient = SolrClientUtils.createSolrClient(solrHost);
 
         SolrVcService solrVcService = new SolrVcService(solrClient);
-        solrVcService.removeVc(vc, uuid);
-        SolrClientUtils.commitAndClose(solrClient);
+        for (String uuid : uuids) {
+            solrVcService.removeVc(vc, uuid);
+            SolrClientUtils.commitAndClose(solrClient);
+        }
+        solrClient.close();
     }
 }
