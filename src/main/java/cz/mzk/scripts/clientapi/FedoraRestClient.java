@@ -1,5 +1,6 @@
-package cz.mzk.scripts.fedora;
+package cz.mzk.scripts.clientapi;
 
+import cz.mzk.scripts.configuration.ClientApiConfig;
 import cz.mzk.scripts.model.DataStreams;
 import org.apache.tomcat.util.codec.binary.Base64;
 import org.springframework.http.*;
@@ -37,7 +38,7 @@ public class FedoraRestClient {
     public FedoraRestClient(String fh, String fu, String fp)
             throws ParserConfigurationException, XPathExpressionException, TransformerException {
         fedoraHost = fh;
-        restTemplate = getConfiguredRestTemplate();
+        restTemplate = ClientApiConfig.getConfiguredRestTemplate();
         httpHeaders = createHttpHeaders(fu, fp);
         httpEntity = new HttpEntity<>(httpHeaders);
 
@@ -162,22 +163,9 @@ public class FedoraRestClient {
             put("controlGroup", ds.controlGroup);
             put("state", ds.state);
         }};
-        url = buildUri(url, uriParam);
+        url = ClientApiConfig.buildUri(url, uriParam);
 
         restTemplate.postForEntity(url, entity, String.class);
     }
 
-    private String buildUri(String url, Map<String, ?> params) {
-        UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(url);
-        for (Map.Entry<String, ?> entry : params.entrySet()) {
-            builder.queryParam(entry.getKey(), entry.getValue());
-        }
-        return builder.encode().build().toUri().toString();
-    }
-
-    private RestTemplate getConfiguredRestTemplate() {
-        RestTemplate restTemplate = new RestTemplate();
-        restTemplate.setInterceptors(Collections.singletonList(new PlusEncoderInterceptor()));
-        return restTemplate;
-    }
 }

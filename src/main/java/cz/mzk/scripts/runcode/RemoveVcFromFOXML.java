@@ -1,11 +1,11 @@
-package cz.mzk.scripts.fedora;
+package cz.mzk.scripts.runcode;
 
+import cz.mzk.scripts.clientapi.FedoraRestClient;
 import org.w3c.dom.Document;
 
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerException;
 import javax.xml.xpath.XPathExpressionException;
-import java.io.IOException;
 import java.util.Optional;
 
 public class RemoveVcFromFOXML {

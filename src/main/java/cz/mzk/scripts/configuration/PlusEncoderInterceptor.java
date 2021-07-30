@@ -1,4 +1,4 @@
-package cz.mzk.scripts.fedora;
+package cz.mzk.scripts.configuration;
 
 import org.springframework.http.HttpRequest;
 import org.springframework.http.client.ClientHttpRequestExecution;
