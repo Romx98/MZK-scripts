@@ -39,7 +39,7 @@ public class FedoraRestClient {
             throws ParserConfigurationException, XPathExpressionException, TransformerException {
         fedoraHost = fh;
         restTemplate = ClientApiConfig.getConfiguredRestTemplate();
-        httpHeaders = createHttpHeaders(fu, fp);
+        httpHeaders = ClientApiConfig.createHttpHeaders(fu, fp);
         httpEntity = new HttpEntity<>(httpHeaders);
 
         DocumentBuilderFactory factory = DocumentBuilderFactory.newDefaultInstance();
@@ -113,14 +113,6 @@ public class FedoraRestClient {
             e.getMessage();
         }
         return Optional.empty();
-    }
-
-    private HttpHeaders createHttpHeaders(String fu, String fp) {
-        String credentials = fu + ":" + fp;
-        String encodeCredentials = new String(Base64.encodeBase64(credentials.getBytes()));
-        HttpHeaders headers = new HttpHeaders();
-        headers.add("Authorization", "Basic " + encodeCredentials);
-        return headers;
     }
 
     public void setRelsExt(String uuid, Document relsExt) throws TransformerException {

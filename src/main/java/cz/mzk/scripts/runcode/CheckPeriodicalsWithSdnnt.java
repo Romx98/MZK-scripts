@@ -1,26 +1,23 @@
 package cz.mzk.scripts.runcode;
 
 import cz.mzk.scripts.clientapi.SolrClientUtils;
-import cz.mzk.scripts.services.SolrVcService;
+import cz.mzk.scripts.services.SolrCheckingDnnt;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrServerException;
 
 import java.io.IOException;
 
-public class RemoveVcSolr {
+public class CheckPeriodicalsWithSdnnt {
 
     public static void main(String[] args) throws SolrServerException, IOException {
+        //String sdnntHost = System.getenv("SDNNT_HOST");
+        //String proxyHost = System.getenv("PROXY_HOST");
+        //String proxyPort = System.getenv("PROXY_PORT");
         String solrHost = System.getenv("SOLR_HOST");
-        String vc = "";
-        String[] uuids = {""};
 
+        // SOLR
         SolrClient solrClient = SolrClientUtils.createSolrClient(solrHost);
-
-        SolrVcService solrVcService = new SolrVcService(solrClient);
-        for (String uuid : uuids) {
-            solrVcService.removeVc(vc, uuid);
-            SolrClientUtils.commit(solrClient);
-        }
-        solrClient.close();
+        SolrCheckingDnnt checkingDnnt = new SolrCheckingDnnt(solrClient);
+        checkingDnnt.printAllPeriodicalDnnt("1911", "2010");
     }
 }

@@ -9,7 +9,7 @@ import org.apache.solr.common.SolrDocumentList;
 import org.apache.solr.common.SolrInputDocument;
 
 import java.io.IOException;
-import java.util.Collections;
+import java.util.*;
 import java.util.function.Consumer;
 
 public class SolrClientUtils {
@@ -19,6 +19,14 @@ public class SolrClientUtils {
                 .withConnectionTimeout(10000)
                 .withSocketTimeout(60000)
                 .build();
+    }
+
+    public static void printResponse(SolrQuery solrQuery, SolrClient solrClient)
+            throws SolrServerException, IOException {
+        SolrDocumentList responseList = queryForSolrDocList(solrQuery, solrClient);
+        System.out.println("Num Found: " + responseList.size());
+        responseList.forEach(System.out::println);
+
     }
 
     public static void singleRequestAndApply(SolrQuery solrQuery, SolrClient solrClient,
@@ -45,9 +53,13 @@ public class SolrClientUtils {
         return fieldKey + ":[" + from + " TO " + to + "]";
     }
 
-    public static void commitAndClose(SolrClient solrClient)
+    public static void commit(SolrClient solrClient)
             throws SolrServerException, IOException {
         solrClient.commit();
         //solrClient.close();
+    }
+
+    public static void close(SolrClient solrClient) throws IOException {
+        solrClient.close();
     }
 }
