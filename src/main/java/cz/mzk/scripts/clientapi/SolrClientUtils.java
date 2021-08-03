@@ -2,6 +2,7 @@ package cz.mzk.scripts.clientapi;
 
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrQuery;
+import org.apache.solr.client.solrj.SolrResponse;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.HttpSolrClient;
 import org.apache.solr.common.SolrDocument;
@@ -23,10 +24,14 @@ public class SolrClientUtils {
 
     public static void printResponse(SolrQuery solrQuery, SolrClient solrClient)
             throws SolrServerException, IOException {
-        SolrDocumentList responseList = queryForSolrDocList(solrQuery, solrClient);
-        System.out.println("Num Found: " + responseList.size());
-        responseList.forEach(System.out::println);
+        long numbRow = queryForNumFound(solrQuery, solrClient);
 
+        if (numbRow != 0) {
+            solrQuery.setRows(Math.toIntExact(numbRow));
+            SolrDocumentList responseList = queryForSolrDocList(solrQuery, solrClient);
+            System.out.println("Num Found: " + responseList.getNumFound());
+            responseList.forEach(System.out::println);
+        }
     }
 
     public static void singleRequestAndApply(SolrQuery solrQuery, SolrClient solrClient,
@@ -34,6 +39,11 @@ public class SolrClientUtils {
             throws SolrServerException, IOException {
         SolrDocumentList docs = queryForSolrDocList(solrQuery, solrClient);
         docs.forEach(consumer);
+    }
+
+    public static long queryForNumFound(SolrQuery solrQuery, SolrClient solrClient)
+            throws SolrServerException, IOException {
+        return queryForSolrDocList(solrQuery, solrClient).getNumFound();
     }
 
     public static SolrDocumentList queryForSolrDocList(SolrQuery solrQuery, SolrClient solrClient)
