@@ -1,12 +1,10 @@
-package cz.mzk.scripts.clientapi;
+package cz.mzk.scripts.client_api;
 
 import cz.mzk.scripts.configuration.ClientApiConfig;
 import cz.mzk.scripts.model.DataStreams;
-import org.apache.tomcat.util.codec.binary.Base64;
 import org.springframework.http.*;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.web.util.UriComponentsBuilder;
 import org.w3c.dom.*;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;

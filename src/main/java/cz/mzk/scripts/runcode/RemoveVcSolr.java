@@ -1,6 +1,6 @@
 package cz.mzk.scripts.runcode;
 
-import cz.mzk.scripts.clientapi.SolrClientUtils;
+import cz.mzk.scripts.client_api.SolrClientUtils;
 import cz.mzk.scripts.services.SolrVcService;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrServerException;

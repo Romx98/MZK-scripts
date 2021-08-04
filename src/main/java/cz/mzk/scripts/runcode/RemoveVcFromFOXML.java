@@ -1,6 +1,6 @@
 package cz.mzk.scripts.runcode;
 
-import cz.mzk.scripts.clientapi.FedoraRestClient;
+import cz.mzk.scripts.client_api.FedoraRestClient;
 import org.w3c.dom.Document;
 
 import javax.xml.parsers.ParserConfigurationException;
