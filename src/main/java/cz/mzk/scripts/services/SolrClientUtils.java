@@ -23,14 +23,8 @@ public class SolrClientUtils {
 
     public static void printResponse(SolrQuery solrQuery, SolrClient solrClient)
             throws SolrServerException, IOException {
-        long numbRow = queryForNumFound(solrQuery, solrClient);
-
-        if (numbRow != 0) {
-            solrQuery.setRows(Math.toIntExact(numbRow));
-            SolrDocumentList responseList = queryForSolrDocList(solrQuery, solrClient);
-            System.out.println("Num Found: " + responseList.getNumFound());
-            responseList.forEach(System.out::println);
-        }
+        SolrDocumentList docs = queryForSolrDocList(solrQuery, solrClient);
+        docs.forEach(System.out::println);
     }
 
     public static void singleRequestAndApply(SolrQuery solrQuery, SolrClient solrClient,
@@ -40,12 +34,19 @@ public class SolrClientUtils {
         docs.forEach(consumer);
     }
 
+    public static SolrDocumentList getSolrDocListAndSetRows(SolrQuery solrQuery, SolrClient solrClient)
+            throws SolrServerException, IOException {
+        long numbRow = queryForNumFound(solrQuery, solrClient);
+        solrQuery.setRows(Math.toIntExact(numbRow));
+        return queryForSolrDocList(solrQuery, solrClient);
+    }
+
     public static long queryForNumFound(SolrQuery solrQuery, SolrClient solrClient)
             throws SolrServerException, IOException {
         return queryForSolrDocList(solrQuery, solrClient).getNumFound();
     }
 
-    public static SolrDocumentList queryForSolrDocList(SolrQuery solrQuery, SolrClient solrClient)
+    private static SolrDocumentList queryForSolrDocList(SolrQuery solrQuery, SolrClient solrClient)
             throws SolrServerException, IOException {
         return solrClient.query(solrQuery).getResults();
     }

@@ -5,8 +5,13 @@ import cz.mzk.scripts.model.SolrField;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
+import org.apache.solr.common.SolrDocumentList;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Optional;
 
 public class SolrCheckingDnnt {
 
@@ -19,7 +24,8 @@ public class SolrCheckingDnnt {
     public void printAllPeriodicalDnnt(String fromYear, String toYear)
             throws SolrServerException, IOException {
         SolrQuery solrQuery = createQueryByYearOfPeriodical(fromYear, toYear);
-        SolrClientUtils.printResponse(solrQuery, solrClient);
+        SolrDocumentList docs = SolrClientUtils.getSolrDocListAndSetRows(solrQuery, solrClient);
+        docs.forEach(x -> System.out.println(x.getFieldValue(SolrField.IDENTIFIER).toString()));
     }
 
     public SolrQuery createQueryByYearOfPeriodical(String fromYear, String toYear) {
