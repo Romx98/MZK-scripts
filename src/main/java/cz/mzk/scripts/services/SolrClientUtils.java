@@ -55,6 +55,10 @@ public class SolrClientUtils {
         inputDoc.addField(fieldKey, Collections.singletonMap("set", fieldValue));
     }
 
+    public static String getFieldValueByFieldName(SolrDocument doc, String fieldName) {
+        return doc.getFieldValue(fieldName).toString();
+    }
+
     public static String wrapQueryStr(String fieldKey, String fieldValue) {
         return fieldKey + ":\"" + fieldValue.trim() + "\"";
     }

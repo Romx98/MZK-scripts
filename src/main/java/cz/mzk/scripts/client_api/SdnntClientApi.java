@@ -15,6 +15,7 @@ import org.springframework.web.client.RestTemplate;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 
 public class SdnntClientApi {
 
@@ -29,15 +30,17 @@ public class SdnntClientApi {
     }
 
     public void printAllResource(String param) throws JsonProcessingException {
-        String url = getResourceByParam(param);
+        String url = wrapUrlByParam(param);
         System.out.println(getFieldValueFromResourceStr(SdnntField.LICENCE, url));
     }
 
-    public String getFieldValueFromResourceStr(String fieldName, String url) throws JsonProcessingException {
-        return (String) getSdnntResource(url).get(fieldName);
+    public Optional<String> getFieldValueFromResourceStr(String fieldName, String param)
+            throws JsonProcessingException {
+        String url = wrapUrlByParam(param.trim());
+        return Optional.ofNullable((String) getSdnntResource(url).get(fieldName));
     }
 
-    private Map<String, Object> getSdnntResource(String url) throws JsonProcessingException {
+    public Map<String, Object> getSdnntResource(String url) throws JsonProcessingException {
         ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
         String str = Objects.requireNonNull(response.getBody());
 
@@ -69,13 +72,8 @@ public class SdnntClientApi {
         return true;
     }
 
-    private String getResourceByParam(String param) {
-        String paramStr = replaceColonWithEqualSign(param);
-        return sdnntHost + "/?" + paramStr;
-    }
-
-    private String replaceColonWithEqualSign(String param) {
-        return param.replace(":", "=");
+    private String wrapUrlByParam(String param) {
+        return sdnntHost + "/?" + param;
     }
 
 }
