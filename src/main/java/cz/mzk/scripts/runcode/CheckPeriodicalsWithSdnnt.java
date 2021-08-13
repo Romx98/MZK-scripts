@@ -19,8 +19,6 @@ public class CheckPeriodicalsWithSdnnt {
         String sdnntHost = System.getenv("SDNNT_HOST");
         String solrHost = System.getenv("SOLR_HOST");
 
-        //String param = "uuid=2405e7d0-6b97-11e7-aab4-005056827e52";
-        //String param = "cnb=cnb000356176";
         // SOLR
         SolrClient solrClient = SolrClientUtils.createSolrClient(solrHost);
         SdnntClientApi sdnntApi = new SdnntClientApi(sdnntHost);
