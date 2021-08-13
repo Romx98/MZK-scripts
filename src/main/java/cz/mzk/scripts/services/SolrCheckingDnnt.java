@@ -32,8 +32,19 @@ public class SolrCheckingDnnt {
         return SolrClientUtils.getSolrDocListAndSetRows(solrQuery, solrClient);
     }
 
-    public String getDnntLabel(SolrDocument doc) {
-        return SolrClientUtils.getFieldValueByFieldName(doc, SolrField.DNNT_LABELS);
+    public Optional<String> getDnntLabel(SolrDocument doc) {
+        String str = SolrClientUtils.getFieldValueByFieldName(doc, SolrField.DNNT_LABELS);
+        return fromArrayGetDnntLabel(str);
+    }
+
+    private Optional<String> fromArrayGetDnntLabel(String dnntLabel) {
+        String[] fieldStr = dnntLabel.split(",");
+        for (String str : fieldStr) {
+            if (str.contains("dnnt")){
+                return Optional.of(str.trim().replace("[", "").replace("]", ""));
+            }
+        }
+        return Optional.empty();
     }
 
     public String getUuidForUrlRequest(SolrDocument doc) {
@@ -54,7 +65,7 @@ public class SolrCheckingDnnt {
         String[] fieldStr = str.split(",");
         for (String s : fieldStr) {
             if (s.contains("cnb") && !s.contains("ccnb")) {
-                return Optional.of("cnb=" + s.trim().replace("[()]",""));
+                return Optional.of("cnb=" + s.trim().replace("[","").replace("]",""));
             }
         }
         return Optional.empty();

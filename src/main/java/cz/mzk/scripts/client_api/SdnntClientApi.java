@@ -37,7 +37,11 @@ public class SdnntClientApi {
     public Optional<String> getFieldValueFromResourceStr(String fieldName, String param)
             throws JsonProcessingException {
         String url = wrapUrlByParam(param.trim());
-        return Optional.ofNullable((String) getSdnntResource(url).get(fieldName));
+        try {
+            return Optional.ofNullable((String) getSdnntResource(url).get(fieldName));
+        } catch (ClassCastException e) {
+            return Optional.empty();
+        }
     }
 
     public Map<String, Object> getSdnntResource(String url) throws JsonProcessingException {
