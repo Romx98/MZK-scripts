@@ -1,6 +1,8 @@
 package cz.mzk.scripts.services;
 
 import cz.mzk.scripts.model.SolrField;
+import cz.mzk.scripts.services.solrutils.SolrClientUtils;
+import cz.mzk.scripts.services.solrutils.SolrQueryUtils;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
@@ -21,7 +23,7 @@ public class SolrVcService {
     }
 
     public void removeVc(String idVc, String uuid) throws SolrServerException, IOException {
-        SolrQuery query = createQueryByRootUuid(uuid);
+        SolrQuery query = SolrQueryUtils.createQueryByRootUuid(uuid);
         SolrClientUtils.singleRequestAndApply(query, solrClient, createUnlinkConsumer(idVc));
     }
 
@@ -42,16 +44,7 @@ public class SolrVcService {
             }
         };
     }
-
-    private SolrQuery createQueryByRootUuid(String uuid) {
-        String allPartsQueryStr = SolrClientUtils.wrapQueryStr(SolrField.UUID, uuid);
-
-        SolrQuery solrQuery = new SolrQuery(allPartsQueryStr);
-        solrQuery.addField(SolrField.UUID);
-        solrQuery.addField(SolrField.COLLECTION);
-        return solrQuery;
-    }
-
+    
     private void setVcFor(String uuid, Object collectionList) throws SolrServerException, IOException {
         SolrInputDocument inputDoc = new SolrInputDocument();
 
@@ -60,7 +53,5 @@ public class SolrVcService {
         SolrClientUtils.updateSolrFieldValue(inputDoc, SolrField.MODIFIED_DATE, new Date());
         solrClient.add(inputDoc);
     }
-
-
 
 }

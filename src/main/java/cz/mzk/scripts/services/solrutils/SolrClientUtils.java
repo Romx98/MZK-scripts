@@ -1,4 +1,4 @@
-package cz.mzk.scripts.services;
+package cz.mzk.scripts.services.solrutils;
 
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrQuery;

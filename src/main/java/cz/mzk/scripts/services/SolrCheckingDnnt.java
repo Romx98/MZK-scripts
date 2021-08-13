@@ -1,7 +1,8 @@
 package cz.mzk.scripts.services;
 
-import cz.mzk.scripts.model.FedoraModel;
 import cz.mzk.scripts.model.SolrField;
+import cz.mzk.scripts.services.solrutils.SolrClientUtils;
+import cz.mzk.scripts.services.solrutils.SolrQueryUtils;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
@@ -19,16 +20,9 @@ public class SolrCheckingDnnt {
         this.solrClient = solrClient;
     }
 
-    public void printAllPeriodicalDnnt(String fromYear, String toYear)
-            throws SolrServerException, IOException {
-        SolrQuery solrQuery = createQueryByYearOfPeriodical(fromYear, toYear);
-        SolrDocumentList docs = SolrClientUtils.getSolrDocListAndSetRows(solrQuery, solrClient);
-        docs.forEach(x -> System.out.println(x.getFieldValue(SolrField.IDENTIFIER).toString()));
-    }
-
     public SolrDocumentList getSolrDocListResponse(String fromYear, String toYear)
             throws SolrServerException, IOException {
-        SolrQuery solrQuery = createQueryByYearOfPeriodical(fromYear, toYear);
+        SolrQuery solrQuery = SolrQueryUtils.createQueryByYearOfPeriodical(fromYear, toYear);
         return SolrClientUtils.getSolrDocListAndSetRows(solrQuery, solrClient);
     }
 
@@ -71,17 +65,6 @@ public class SolrCheckingDnnt {
         return Optional.empty();
     }
 
-    public SolrQuery createQueryByYearOfPeriodical(String fromYear, String toYear) {
-        SolrQuery solrQuery = new SolrQuery();
-        solrQuery.setQuery(
-                SolrClientUtils.wrapQueryStr(SolrField.MODEL, FedoraModel.PERIODICAL) + " dnnt:true");
-        solrQuery.setFilterQueries(
-                SolrClientUtils.wrapFilterQueryStr(SolrField.YEAR, fromYear, toYear));
 
-        solrQuery.addField(SolrField.UUID);
-        solrQuery.addField(SolrField.IDENTIFIER);
-        solrQuery.addField(SolrField.DNNT_LABELS);
-        return solrQuery;
-    }
 
 }

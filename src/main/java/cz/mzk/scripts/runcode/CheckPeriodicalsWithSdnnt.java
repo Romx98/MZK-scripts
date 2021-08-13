@@ -2,9 +2,8 @@ package cz.mzk.scripts.runcode;
 
 import cz.mzk.scripts.client_api.SdnntClientApi;
 import cz.mzk.scripts.model.SdnntField;
-import cz.mzk.scripts.model.SolrField;
 import cz.mzk.scripts.services.SolrCheckingDnnt;
-import cz.mzk.scripts.services.SolrClientUtils;
+import cz.mzk.scripts.services.solrutils.SolrClientUtils;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.common.SolrDocument;
