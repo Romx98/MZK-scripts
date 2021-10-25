@@ -1,4 +1,4 @@
-package cz.mzk.fedora.model;
+package cz.mzk.constants;
 
 public class SolrField {
     public static final String UUID = "PID";

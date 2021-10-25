@@ -1,5 +1,6 @@
-package cz.mzk.fedora.documentcorrection;
+package cz.mzk.scripts;
 
+import cz.mzk.rest.FedoraRestClient;
 import org.w3c.dom.Document;
 
 import javax.xml.parsers.ParserConfigurationException;

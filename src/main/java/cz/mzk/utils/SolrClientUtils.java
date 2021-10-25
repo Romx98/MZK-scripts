@@ -1,4 +1,4 @@
-package cz.mzk.fedora.solrcorrection;
+package cz.mzk.utils;
 
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrQuery;
