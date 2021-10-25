@@ -41,7 +41,7 @@ public class FedoraRestClient {
         httpHeaders = createHttpHeaders(fu, fp);
         httpEntity = new HttpEntity<>(httpHeaders);
 
-        DocumentBuilderFactory factory = DocumentBuilderFactory.newDefaultInstance();
+        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
         //factory.setNamespaceAware(true);
         xmlParser = factory.newDocumentBuilder();
 
