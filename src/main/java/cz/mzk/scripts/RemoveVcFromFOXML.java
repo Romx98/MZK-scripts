@@ -1,6 +1,7 @@
 package cz.mzk.scripts;
 
 import cz.mzk.rest.FedoraRestClient;
+import cz.mzk.utils.FoxmlUtils;
 import org.w3c.dom.Document;
 
 import javax.xml.parsers.ParserConfigurationException;
@@ -20,11 +21,12 @@ public class RemoveVcFromFOXML {
         String vc = "";
 
         FedoraRestClient fedoraRestClient = new FedoraRestClient(fh, fu, fp);
+        final FoxmlUtils foxmlUtils = new FoxmlUtils();
         Optional<Document> doc = fedoraRestClient.getRelsExt(uuid);
 
         if (doc.isPresent()) {
-            doc = fedoraRestClient.removeVc(doc.get(), vc);
-            if (doc.isPresent()) {
+            final boolean updated = foxmlUtils.removeVc(doc.get(), vc);
+            if (updated) {
                 fedoraRestClient.setRelsExt(uuid, doc.get());
             }
         }

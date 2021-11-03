@@ -18,7 +18,6 @@ import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
-import javax.xml.xpath.*;
 import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
@@ -32,79 +31,37 @@ public class FedoraRestClient {
     private final RestTemplate restTemplate;
     private final DocumentBuilder xmlParser;
     private final Transformer xmlTransformer;
-    private final XPathExpression xmlPathExp;
 
-    public FedoraRestClient(String fh, String fu, String fp)
-            throws ParserConfigurationException, XPathExpressionException, TransformerException {
+    public FedoraRestClient(final String fh, final String fu, final String fp) throws ParserConfigurationException, TransformerException {
         fedoraHost = fh;
         restTemplate = getConfiguredRestTemplate();
         httpHeaders = createHttpHeaders(fu, fp);
         httpEntity = new HttpEntity<>(httpHeaders);
 
-        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+        final DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
         //factory.setNamespaceAware(true);
         xmlParser = factory.newDocumentBuilder();
 
-        XPathFactory xFactory = XPathFactory.newInstance();
-        XPath xmlPath = xFactory.newXPath();
-        xmlPathExp = xmlPath.compile("//*[local-name() = 'isMemberOfCollection']/@resource");
-
-        TransformerFactory tFactory = TransformerFactory.newInstance();
+        final TransformerFactory tFactory = TransformerFactory.newInstance();
         xmlTransformer = tFactory.newTransformer();
     }
 
-    public Optional<Document> removeVc(Document doc, String vc)
-            throws XPathExpressionException {
-        if ((doc != null) && (vc != null)) {
-            String uuidVc = getFullFormatVC(vc);
-            NodeList attrNodes = (NodeList) xmlPathExp.evaluate(doc, XPathConstants.NODESET);
-
-            for (int i = 0; i < attrNodes.getLength(); i++) {
-                Node attrNode = attrNodes.item(i);
-                if (attrNode.getTextContent().equals(uuidVc)) {
-                    removeChildren(attrNode);
-                }
-            }
-        }
-        return Optional.ofNullable(doc);
-    }
-
-    private void removeChildren(Node attrNode) {
-        Attr attr = (Attr) attrNode;
-        Node nodeOwner = attr.getOwnerElement();
-        if (nodeOwner.getParentNode() != null) {
-            nodeOwner.getParentNode().removeChild(nodeOwner);
-        }
-    }
-
-    public void printAllVC(Document doc) throws XPathExpressionException {
-        if (doc != null) {
-            NodeList nodes = (NodeList) xmlPathExp.evaluate(doc, XPathConstants.NODESET);
-            System.out.println("Nodes length: " + nodes.getLength());
-
-            for (int i = 0; i < nodes.getLength(); i++) {
-                Node node = nodes.item(i);
-                System.out.println(node.getTextContent());
-            }
-        }
-    }
-
-    public Optional<Document> getFoxmlByUuid(String uuid) {
+    public Optional<Document> getFoxmlByUuid(final String uuid) {
         return getFedoraResource(fedoraHost + "/objects/" + uuid + "/objectXML");
     }
 
-    public Optional<Document> getRelsExt(String uuid) {
+    public Optional<Document> getRelsExt(final String uuid) {
         return getDataStream(uuid, DataStreams.RELS_EXT.name);
     }
 
-    private Optional<Document> getDataStream(String uuid, String dsName) {
+    private Optional<Document> getDataStream(final String uuid, final String dsName) {
         return getFedoraResource(fedoraHost + "/get/" + uuid + "/" + dsName);
     }
 
-    private Optional<Document> getFedoraResource(String url) {
+    private Optional<Document> getFedoraResource(final String url) {
         try {
-            ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, httpEntity, String.class);
-            String str = Objects.requireNonNull(response.getBody());
+            final ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, httpEntity, String.class);
+            final String str = Objects.requireNonNull(response.getBody());
             return Optional.of(xmlParser.parse(new InputSource(new StringReader(str))));
         } catch (SAXException | IOException e) {
             e.printStackTrace();
@@ -114,49 +71,45 @@ public class FedoraRestClient {
         return Optional.empty();
     }
 
-    private HttpHeaders createHttpHeaders(String fu, String fp) {
-        String credentials = fu + ":" + fp;
-        String encodeCredentials = new String(Base64.encodeBase64(credentials.getBytes()));
-        HttpHeaders headers = new HttpHeaders();
+    private HttpHeaders createHttpHeaders(final String fu, final String fp) {
+        final String credentials = fu + ":" + fp;
+        final String encodeCredentials = new String(Base64.encodeBase64(credentials.getBytes()));
+        final HttpHeaders headers = new HttpHeaders();
         headers.add("Authorization", "Basic " + encodeCredentials);
         return headers;
     }
 
-    public void setRelsExt(String uuid, Document relsExt) throws TransformerException {
+    public void setRelsExt(final String uuid, final Document relsExt) throws TransformerException {
         if (relsExt != null) {
-            Optional<HttpEntity<Object>> entity = docStrEntity(relsExt, DataStreams.RELS_EXT.mimeType);
+            final Optional<HttpEntity<Object>> entity = docStrEntity(relsExt, DataStreams.RELS_EXT.mimeType);
             entity.ifPresent(objectHttpEntity -> setDataStream(uuid, DataStreams.RELS_EXT, objectHttpEntity));
         }
     }
 
-    private Optional<HttpEntity<Object>> docStrEntity(Document doc, String mimeType) throws TransformerException {
+    private Optional<HttpEntity<Object>> docStrEntity(final Document doc, final String mimeType) throws TransformerException {
         if (doc != null) {
             return Optional.of(new HttpEntity<>(docToStr(doc), createMimeTypeHeaders(mimeType)));
         }
         return Optional.empty();
     }
 
-    private HttpHeaders createMimeTypeHeaders(String mimeType) {
-        HttpHeaders headers = new HttpHeaders(httpHeaders);
+    private HttpHeaders createMimeTypeHeaders(final String mimeType) {
+        final HttpHeaders headers = new HttpHeaders(httpHeaders);
         headers.setContentType(MediaType.parseMediaType(mimeType));
         return headers;
     }
 
-    private String docToStr(Document doc) throws TransformerException {
-        StreamResult streamResult = new StreamResult(new StringWriter());
-        DOMSource domSource = new DOMSource(doc);
+    private String docToStr(final Document doc) throws TransformerException {
+        final StreamResult streamResult = new StreamResult(new StringWriter());
+        final DOMSource domSource = new DOMSource(doc);
         xmlTransformer.transform(domSource, streamResult);
         return streamResult.getWriter().toString();
     }
 
-    private String getFullFormatVC(String vc) {
-        return "info:fedora/" + vc;
-    }
-
-    private void setDataStream(String uuid, DataStreams ds, HttpEntity<Object> entity) {
+    private void setDataStream(final String uuid, final DataStreams ds, final HttpEntity<Object> entity) {
         String url = fedoraHost + "/objects/" + uuid + "/datastreams/" + ds.name;
 
-        Map<String, String> uriParam = new HashMap<>() {{
+        final Map<String, String> uriParam = new HashMap<>() {{
             put("mimeType", ds.mimeType);
             put("versionable", ds.versionable);
             put("controlGroup", ds.controlGroup);
@@ -167,16 +120,16 @@ public class FedoraRestClient {
         restTemplate.postForEntity(url, entity, String.class);
     }
 
-    private String buildUri(String url, Map<String, ?> params) {
-        UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(url);
-        for (Map.Entry<String, ?> entry : params.entrySet()) {
+    private String buildUri(final String url, final Map<String, ?> params) {
+        final UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(url);
+        for (final Map.Entry<String, ?> entry : params.entrySet()) {
             builder.queryParam(entry.getKey(), entry.getValue());
         }
         return builder.encode().build().toUri().toString();
     }
 
     private RestTemplate getConfiguredRestTemplate() {
-        RestTemplate restTemplate = new RestTemplate();
+        final RestTemplate restTemplate = new RestTemplate();
         restTemplate.setInterceptors(Collections.singletonList(new PlusEncoderInterceptor()));
         return restTemplate;
     }
