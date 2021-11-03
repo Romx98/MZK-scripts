@@ -1,5 +1,7 @@
-package cz.mzk.fedora.solrcorrection;
+package cz.mzk.scripts;
 
+import cz.mzk.service.SolrVcService;
+import cz.mzk.utils.SolrClientUtils;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrServerException;
 
