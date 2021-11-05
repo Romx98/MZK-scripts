@@ -1,7 +1,9 @@
 package cz.mzk.scripts;
 
+import cz.mzk.constants.SolrField;
 import cz.mzk.rest.CustomSolrClient;
 import cz.mzk.rest.FedoraRestClient;
+import cz.mzk.utils.SolrUtils;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.common.SolrInputDocument;
 import org.w3c.dom.Document;
@@ -30,7 +32,7 @@ public class SyncFoxmlFieldsWithSolr {
             add(createISSNSynchronizer());
         }};
 
-        final SolrQuery fetchAllRootsSolrQuery = createFetchAllRootsWithoutTheRequiredFieldsSolrQuery();
+        final SolrQuery fetchAllRootsSolrQuery = createFetchAllRootsWithoutTheRequiredFieldsSolrQuery(MAX_DOCS_PER_SOLR_QUERY);
 
         solrClient.queryAndApply(fetchAllRootsSolrQuery, (solrDoc) -> {
             // TODO implementation
@@ -51,6 +53,7 @@ public class SyncFoxmlFieldsWithSolr {
             // add all required Solr field names and XPath expression parsing to SolrField.java and FoxmlUtils.java
             // parse the required field in FOXML
             // if exists and is not blank, update SolrInputDocument object by SolrUtils.java
+
         };
     }
 
@@ -61,11 +64,23 @@ public class SyncFoxmlFieldsWithSolr {
         };
     }
 
-    private static SolrQuery createFetchAllRootsWithoutTheRequiredFieldsSolrQuery() {
+    private static SolrQuery createFetchAllRootsWithoutTheRequiredFieldsSolrQuery(int max_rows) {
         // TODO implementation
         // create SolrQuery with query for all root uuids
         // use MAX_DOCS_SOLR_QUERY to set 'rows' parameter
         // filter roots that doesn't have required fields
-        return null;
+
+        SolrQuery solrQuery = new SolrQuery();
+        solrQuery.setQuery(
+                SolrUtils.wrapQueryStrForEmptyValue(SolrField.ISSN) + " OR " +
+                SolrUtils.wrapNegatedQueryByRegexStr(SolrField.DC_IDENT, "cnb"));
+
+        solrQuery.addFilterQuery("{!frange l=1 u=1 v=eq(" + SolrField.UUID +", " + SolrField.ROOT_PID + ")}");
+        solrQuery.setRows(max_rows);
+
+        solrQuery.addField(SolrField.UUID);
+        solrQuery.addField(SolrField.DC_IDENT);
+        solrQuery.addField(SolrField.ISSN);
+        return solrQuery;
     }
 }
