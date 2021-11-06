@@ -64,19 +64,13 @@ public class SyncFoxmlFieldsWithSolr {
         };
     }
 
-    private static SolrQuery createFetchAllRootsWithoutTheRequiredFieldsSolrQuery(int max_rows) {
-        // TODO implementation
-        // create SolrQuery with query for all root uuids
-        // use MAX_DOCS_SOLR_QUERY to set 'rows' parameter
-        // filter roots that doesn't have required fields
-
-        SolrQuery solrQuery = new SolrQuery();
+    private static SolrQuery createFetchAllRootsWithoutTheRequiredFieldsSolrQuery(final int maxRows) {
+        final SolrQuery solrQuery = new SolrQuery();
         solrQuery.setQuery(
-                SolrUtils.wrapQueryStrForEmptyValue(SolrField.ISSN) + " OR " +
-                SolrUtils.wrapNegatedQueryByRegexStr(SolrField.DC_IDENT, "cnb"));
-
-        solrQuery.addFilterQuery("{!frange l=1 u=1 v=eq(" + SolrField.UUID +", " + SolrField.ROOT_PID + ")}");
-        solrQuery.setRows(max_rows);
+                SolrUtils.queryNoFieldValue(SolrField.ISSN) + " OR " +
+                SolrUtils.queryNoStrFieldValueByRegex(SolrField.DC_IDENT, "cnb"));
+        solrQuery.addFilterQuery(SolrUtils.filterQueryRootPid());
+        solrQuery.setRows(maxRows);
 
         solrQuery.addField(SolrField.UUID);
         solrQuery.addField(SolrField.DC_IDENT);
