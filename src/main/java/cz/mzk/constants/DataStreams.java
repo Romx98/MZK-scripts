@@ -2,7 +2,8 @@ package cz.mzk.constants;
 
 public enum DataStreams {
 
-    RELS_EXT("RELS-EXT", "application/rdf+xml" , "true", "X", "A");
+    RELS_EXT("RELS-EXT", "application/rdf+xml" , "true", "X", "A"),
+    DC("DC", "text/xml", "false", "X", "A");
 
     public String name;
     public String mimeType;

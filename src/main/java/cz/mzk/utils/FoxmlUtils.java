@@ -22,7 +22,7 @@ public class FoxmlUtils {
         final XPathFactory xFactory = XPathFactory.newInstance();
         final XPath xmlPath = xFactory.newXPath();
         isMemberOfCollectionXPath = compile("//*[local-name() = 'isMemberOfCollection']/@resource", xmlPath);
-        identifierXPath = compile("//*[local-name() = 'identifier']/@resource", xmlPath);
+        identifierXPath = compile("//*[local-name() = 'identifier']/text()", xmlPath);
     }
 
     public Optional<List<String>> getListOfCNNBFromFoxml(final Document doc) {
@@ -41,7 +41,6 @@ public class FoxmlUtils {
         return Optional.empty();
     }
 
-
     private Optional<List<String>> parseIdentifierByValueName(final Document doc, final String valueName) {
         Validate.notNull(doc);
         Validate.notBlank(valueName);
@@ -56,7 +55,7 @@ public class FoxmlUtils {
                     values.add(attrNode.getTextContent());
                 }
             }
-            return Optional.of(values);
+            return (values.isEmpty())? Optional.empty() : Optional.of(values);
         } catch (XPathExpressionException e) {
             log.warn("Can't retrieve identifier!");
             e.printStackTrace();
