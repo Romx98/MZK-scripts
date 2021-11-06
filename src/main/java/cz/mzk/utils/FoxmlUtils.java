@@ -8,16 +8,60 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import javax.xml.xpath.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 
 @Slf4j
 public class FoxmlUtils {
 
     private final XPathExpression isMemberOfCollectionXPath;
+    private final XPathExpression identifierXPath;
 
     public FoxmlUtils() {
         final XPathFactory xFactory = XPathFactory.newInstance();
         final XPath xmlPath = xFactory.newXPath();
         isMemberOfCollectionXPath = compile("//*[local-name() = 'isMemberOfCollection']/@resource", xmlPath);
+        identifierXPath = compile("//*[local-name() = 'identifier']/@resource", xmlPath);
+    }
+
+    public Optional<List<String>> getListOfCNNBFromFoxml(final Document doc) {
+        Validate.notNull(doc);
+
+        return parseIdentifierByValueName(doc, "cnb");
+    }
+
+    public Optional<String> getStrISSNFromFoxml(final Document doc) {
+        Validate.notNull(doc);
+
+        Optional<List<String>> listOfISSN = parseIdentifierByValueName(doc, "issn");
+        if (listOfISSN.isPresent() && !listOfISSN.get().isEmpty()) {
+            return Optional.of(listOfISSN.get().get(0));
+        }
+        return Optional.empty();
+    }
+
+
+    private Optional<List<String>> parseIdentifierByValueName(final Document doc, final String valueName) {
+        Validate.notNull(doc);
+        Validate.notBlank(valueName);
+
+        try {
+            final NodeList attrNodes = (NodeList) identifierXPath.evaluate(doc, XPathConstants.NODESET);
+            List<String> values = new ArrayList<>();
+
+            for (int i = 0; i < attrNodes.getLength(); i++) {
+                Node attrNode = attrNodes.item(i);
+                if (attrNode.getTextContent().contains(valueName)) {
+                    values.add(attrNode.getTextContent());
+                }
+            }
+            return Optional.of(values);
+        } catch (XPathExpressionException e) {
+            log.warn("Can't retrieve identifier!");
+            e.printStackTrace();
+            return Optional.empty();
+        }
     }
 
     public boolean removeVc(final Document doc, final String vcUuid) {
