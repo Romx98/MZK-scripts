@@ -12,11 +12,15 @@ public class SolrUtils {
         inputDocument.addField(fieldKey, Collections.singletonMap("set", fieldValue));
     }
 
-    public static String queryNoFieldValue(String fieldName) {
-        return "-" + fieldName + ":[\"\" TO * ]";
+    public static String queryFieldValue(final String fieldName, final String fieldValue) {
+        return fieldName + ":\"" + fieldValue + "\"";
     }
 
-    public static String queryNoStrFieldValueByRegex(String fieldName, String searchText) {
+    public static String queryNoFieldValue(final String fieldName) {
+        return "-" + fieldName + ":*";
+    }
+
+    public static String queryNoStrFieldValueByRegex(final String fieldName, final String searchText) {
         return "-" + fieldName + ":" + "/.*" + searchText + ".*/";
     }
 

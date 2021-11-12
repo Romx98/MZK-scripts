@@ -67,8 +67,10 @@ public class SyncFoxmlFieldsWithSolr {
     private static SolrQuery createFetchAllRootsWithoutTheRequiredFieldsSolrQuery(final int maxRows) {
         final SolrQuery solrQuery = new SolrQuery();
         solrQuery.setQuery(
-                SolrUtils.queryNoFieldValue(SolrField.ISSN) + " OR " +
-                SolrUtils.queryNoStrFieldValueByRegex(SolrField.DC_IDENT, "cnb"));
+                (SolrUtils.queryNoFieldValue(SolrField.ISSN) + " OR " +
+                        SolrUtils.queryNoStrFieldValueByRegex(SolrField.DC_IDENT, "cnb")) + " OR " +
+                (SolrUtils.queryFieldValue(SolrField.ISSN, "") + " OR " +
+                        SolrUtils.queryNoStrFieldValueByRegex(SolrField.DC_IDENT, "cnb")));
         solrQuery.addFilterQuery(SolrUtils.filterQueryRootPid());
         solrQuery.setRows(maxRows);
 
