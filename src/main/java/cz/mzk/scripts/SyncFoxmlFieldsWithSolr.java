@@ -45,9 +45,9 @@ public class SyncFoxmlFieldsWithSolr {
             // apply each field synchronizer
                 // pass FOXML and SolrInputDocument object as parameters
             // if the result SolrInputDocument object has any field to update, send it to Solr
-            String uuidDoc = (String) solrDoc.getFieldValue(SolrField.UUID);
-            SolrInputDocument solrInputDoc = new SolrInputDocument();
-            Optional<Document> foxml = fedoraClient.getDC(uuidDoc);
+            final String uuidDoc = (String) solrDoc.getFieldValue(SolrField.UUID);
+            final SolrInputDocument solrInputDoc = new SolrInputDocument();
+            final Optional<Document> foxml = fedoraClient.getDC(uuidDoc);
 
             foxml.ifPresent(doc -> fieldSynchronizers.forEach(x -> x.accept(doc, solrInputDoc)));
 
@@ -66,10 +66,10 @@ public class SyncFoxmlFieldsWithSolr {
             // add all required Solr field names and XPath expression parsing to SolrField.java and FoxmlUtils.java
             // parse the required field in FOXML
             // if exists and is not blank, update SolrInputDocument object by SolrUtils.java
-            List<String> listOfCNB = new FoxmlUtils().getListOfCNBFromFoxml(foxml);
+            final List<String> listOfCNB = new FoxmlUtils().getListOfCNBFromFoxml(foxml);
 
             if (!listOfCNB.isEmpty()) {
-                Collection<Object> solrIdentifier = solrInputDoc.getFieldValues(SolrField.DC_IDENT);
+                final Collection<Object> solrIdentifier = solrInputDoc.getFieldValues(SolrField.DC_IDENT);
                 solrIdentifier.addAll(listOfCNB);
 
                 SolrUtils.setModify(solrInputDoc, SolrField.DC_IDENT, solrIdentifier);
@@ -82,7 +82,7 @@ public class SyncFoxmlFieldsWithSolr {
         return (foxml, solrInputDoc) -> {
             // TODO implementation
             // the same as in the previous function for ISSN
-            Optional<String> issn = new FoxmlUtils().getStrISSNFromFoxml(foxml);
+            final Optional<String> issn = new FoxmlUtils().getStrISSNFromFoxml(foxml);
 
             if (issn.isPresent()) {
                 SolrUtils.setModify(solrInputDoc, SolrField.ISSN, issn);

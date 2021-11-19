@@ -90,7 +90,7 @@ public class CustomSolrClient {
         return numFound;
     }
 
-    public void sendSolrInputDocument(SolrInputDocument solrInputDoc)  {
+    public void sendSolrInputDocument(final SolrInputDocument solrInputDoc)  {
         try {
             solrClient.add(solrInputDoc);
         } catch (SolrServerException e) {

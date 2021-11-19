@@ -15,7 +15,7 @@ public class SolrUtils {
     }
 
     public static String findOutCurrentTimeStr() {
-        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+        final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
         return dateFormat.format(new Date());
     }
 
