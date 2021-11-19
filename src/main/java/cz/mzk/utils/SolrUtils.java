@@ -24,7 +24,7 @@ public class SolrUtils {
         return "-" + fieldName + ":" + "/.*" + searchText + ".*/";
     }
 
-    public static String filterQueryRootPid() {
+    public static String filterQueryRootPids() {
         return "{!frange l=1 u=1 v=eq(" + SolrField.UUID +", " + SolrField.ROOT_PID + ")}";
     }
 

@@ -53,7 +53,6 @@ public class SyncFoxmlFieldsWithSolr {
             // add all required Solr field names and XPath expression parsing to SolrField.java and FoxmlUtils.java
             // parse the required field in FOXML
             // if exists and is not blank, update SolrInputDocument object by SolrUtils.java
-
         };
     }
 
@@ -71,7 +70,7 @@ public class SyncFoxmlFieldsWithSolr {
                         SolrUtils.queryNoStrFieldValueByRegex(SolrField.DC_IDENT, "cnb")) + " OR " +
                 (SolrUtils.queryFieldValue(SolrField.ISSN, "") + " OR " +
                         SolrUtils.queryNoStrFieldValueByRegex(SolrField.DC_IDENT, "cnb")));
-        solrQuery.addFilterQuery(SolrUtils.filterQueryRootPid());
+        solrQuery.addFilterQuery(SolrUtils.filterQueryRootPids());
         solrQuery.setRows(maxRows);
 
         solrQuery.addField(SolrField.UUID);

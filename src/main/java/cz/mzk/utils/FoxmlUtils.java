@@ -9,6 +9,7 @@ import org.w3c.dom.NodeList;
 
 import javax.xml.xpath.*;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -25,7 +26,7 @@ public class FoxmlUtils {
         identifierXPath = compile("//*[local-name() = 'identifier']/text()", xmlPath);
     }
 
-    public Optional<List<String>> getListOfCNNBFromFoxml(final Document doc) {
+    public List<String> getListOfCNNBFromFoxml(final Document doc) {
         Validate.notNull(doc);
 
         return parseIdentifierByValueName(doc, "cnb");
@@ -34,32 +35,32 @@ public class FoxmlUtils {
     public Optional<String> getStrISSNFromFoxml(final Document doc) {
         Validate.notNull(doc);
 
-        Optional<List<String>> listOfISSN = parseIdentifierByValueName(doc, "issn");
-        if (listOfISSN.isPresent() && !listOfISSN.get().isEmpty()) {
-            return Optional.of(listOfISSN.get().get(0));
+        final List<String> listOfISSN = parseIdentifierByValueName(doc, "issn");
+        if (listOfISSN != null && !listOfISSN.isEmpty()) {
+            return Optional.of(listOfISSN.get(0));
         }
         return Optional.empty();
     }
 
-    private Optional<List<String>> parseIdentifierByValueName(final Document doc, final String valueName) {
+    private List<String> parseIdentifierByValueName(final Document doc, final String valueName) {
         Validate.notNull(doc);
         Validate.notBlank(valueName);
 
         try {
             final NodeList attrNodes = (NodeList) identifierXPath.evaluate(doc, XPathConstants.NODESET);
-            List<String> values = new ArrayList<>();
+            final List<String> values = new ArrayList<>();
 
             for (int i = 0; i < attrNodes.getLength(); i++) {
-                Node attrNode = attrNodes.item(i);
+                final Node attrNode = attrNodes.item(i);
                 if (attrNode.getTextContent().contains(valueName)) {
                     values.add(attrNode.getTextContent());
                 }
             }
-            return (values.isEmpty())? Optional.empty() : Optional.of(values);
+            return values;
         } catch (XPathExpressionException e) {
-            log.warn("Can't retrieve identifier!");
+            log.warn("Can't retrieve identifier \"" + valueName + "\"");
             e.printStackTrace();
-            return Optional.empty();
+            return null;
         }
     }
 
