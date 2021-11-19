@@ -26,7 +26,7 @@ public class FoxmlUtils {
         identifierXPath = compile("//*[local-name() = 'identifier']/text()", xmlPath);
     }
 
-    public List<String> getListOfCNNBFromFoxml(final Document doc) {
+    public List<String> getListOfCNBFromFoxml(final Document doc) {
         Validate.notNull(doc);
 
         return parseIdentifierByValueName(doc, "cnb");
@@ -36,7 +36,7 @@ public class FoxmlUtils {
         Validate.notNull(doc);
 
         final List<String> listOfISSN = parseIdentifierByValueName(doc, "issn");
-        if (listOfISSN != null && !listOfISSN.isEmpty()) {
+        if (!listOfISSN.isEmpty()) {
             return Optional.of(listOfISSN.get(0));
         }
         return Optional.empty();
@@ -60,7 +60,7 @@ public class FoxmlUtils {
         } catch (XPathExpressionException e) {
             log.warn("Can't retrieve identifier \"" + valueName + "\"");
             e.printStackTrace();
-            return null;
+            return Collections.emptyList();
         }
     }
 

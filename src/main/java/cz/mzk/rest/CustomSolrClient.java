@@ -9,6 +9,7 @@ import org.apache.solr.client.solrj.impl.HttpSolrClient;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
+import org.apache.solr.common.SolrInputDocument;
 import org.apache.solr.common.params.CursorMarkParams;
 
 import java.io.IOException;
@@ -87,6 +88,18 @@ public class CustomSolrClient {
         long numFound = query(queryParams).getNumFound();
         queryParams.setRows(previousRows);
         return numFound;
+    }
+
+    public void sendSolrInputDocument(SolrInputDocument solrInputDoc)  {
+        try {
+            solrClient.add(solrInputDoc);
+        } catch (SolrServerException e) {
+            log.warn("Can't added SolrInputDocument to the custom Solr client! " + e.getMessage());
+            e.printStackTrace();
+        } catch (IOException e) {
+            log.warn("Can't opened the custom Solr client! " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 
     public void close(final boolean commit) {
