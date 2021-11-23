@@ -90,14 +90,11 @@ public class CustomSolrClient {
         return numFound;
     }
 
-    public void sendSolrInputDocument(final SolrInputDocument solrInputDoc)  {
+    public void addSolrInputDocument(final SolrInputDocument solrInputDoc)  {
         try {
             solrClient.add(solrInputDoc);
-        } catch (SolrServerException e) {
-            log.warn("Can't added SolrInputDocument to the custom Solr client! " + e.getMessage());
-            e.printStackTrace();
-        } catch (IOException e) {
-            log.warn("Can't opened the custom Solr client! " + e.getMessage());
+        } catch (SolrServerException | IOException e) {
+            log.warn("Can't index a document to the Solr instance! " + e.getMessage());
             e.printStackTrace();
         }
     }
