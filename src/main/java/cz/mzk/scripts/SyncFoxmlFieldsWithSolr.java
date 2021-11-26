@@ -3,7 +3,7 @@ package cz.mzk.scripts;
 import cz.mzk.constants.SolrField;
 import cz.mzk.rest.CustomSolrClient;
 import cz.mzk.rest.FedoraRestClient;
-import cz.mzk.utils.FileWriterUtils;
+import cz.mzk.utils.FileWrapper;
 import cz.mzk.utils.FoxmlUtils;
 import cz.mzk.utils.SolrUtils;
 import org.apache.solr.client.solrj.SolrQuery;
@@ -19,8 +19,8 @@ import java.util.function.BiConsumer;
 public class SyncFoxmlFieldsWithSolr {
 
     private static final FoxmlUtils foxmlUtils = new FoxmlUtils();
-    private static final FileWriterUtils updateIssnCnbRootsFileWriter = new FileWriterUtils("updated-issn-cnb-roots");
-    private static final FileWriterUtils missingDocInFedora = new FileWriterUtils("missing-doc-in-fedora");
+    private static final FileWrapper updateIssnCnbRootsFileWriter = new FileWrapper("updated-issn-cnb-roots");
+    private static final FileWrapper missingDocInFedora = new FileWrapper("missing-doc-in-fedora");
 
     public static void main(String[] args) throws ParserConfigurationException, TransformerException {
         final String fedoraHost = "";
@@ -52,8 +52,10 @@ public class SyncFoxmlFieldsWithSolr {
             final SolrInputDocument solrInputDoc = createSolrInputDocument(solrDoc);
             final Optional<Document> foxml = fedoraClient.getDC(uuidDoc);
 
-            foxml.ifPresentOrElse(doc -> fieldSynchronizers.forEach(x -> x.accept(doc, solrInputDoc)),
-                    () -> missingDocInFedora.writeLine(uuidDoc));
+            foxml.ifPresentOrElse(doc -> fieldSynchronizers.forEach(
+                    x -> x.accept(doc, solrInputDoc)),
+                    () -> missingDocInFedora.writeLine(uuidDoc)
+            );
 
             if (solrInputDoc.containsKey(SolrField.MODIFIED_DATE)) {
                 solrClient.addSolrInputDocument(solrInputDoc);
@@ -62,6 +64,8 @@ public class SyncFoxmlFieldsWithSolr {
 
         }, MAX_DOCS_PER_SOLR_QUERY);
 
+        updateIssnCnbRootsFileWriter.closeFile();
+        missingDocInFedora.closeFile();
         solrClient.close(true);
     }
 
@@ -112,7 +116,7 @@ public class SyncFoxmlFieldsWithSolr {
         return solrQuery;
     }
 
-    private static SolrInputDocument createSolrInputDocument(SolrDocument solrDoc) {
+    private static SolrInputDocument createSolrInputDocument(final SolrDocument solrDoc) {
         final Collection<Object> existingDcIdent = solrDoc.getFieldValues(SolrField.DC_IDENT);
         final SolrInputDocument inputDoc = new SolrInputDocument();
         inputDoc.addField(SolrField.DC_IDENT, existingDcIdent != null ? existingDcIdent : Collections.emptyList());
