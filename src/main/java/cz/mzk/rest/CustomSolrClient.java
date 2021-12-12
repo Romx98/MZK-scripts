@@ -90,9 +90,9 @@ public class CustomSolrClient {
         return numFound;
     }
 
-    public void addSolrInputDocument(final SolrInputDocument solrInputDoc)  {
+    public void add(final SolrInputDocument inputDoc)  {
         try {
-            solrClient.add(solrInputDoc);
+            solrClient.add(inputDoc);
         } catch (SolrServerException | IOException e) {
             log.warn("Can't index a document to the Solr instance! " + e.getMessage());
             e.printStackTrace();

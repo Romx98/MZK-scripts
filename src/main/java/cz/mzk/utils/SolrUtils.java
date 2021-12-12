@@ -9,8 +9,8 @@ import java.util.function.Function;
 
 public class SolrUtils {
 
-    public static void setModify(final SolrInputDocument inputDocument, final String fieldKey, final Object fieldValue) {
-        inputDocument.addField(fieldKey, Collections.singletonMap("set", fieldValue));
+    public static void setModify(final SolrInputDocument inputDoc, final String fieldKey, final Object fieldValue) {
+        inputDoc.setField(fieldKey, Collections.singletonMap("set", fieldValue));
     }
 
     public static Date getCurrentTimeDate() {

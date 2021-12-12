@@ -25,7 +25,8 @@ import java.util.function.BiConsumer;
 public class SyncFoxmlFieldsWithSolr extends Script {
 
     private final ParamMap paramMap;
-    private final static int MAX_DOCS_PER_SOLR_QUERY = 5_000;
+    private static final String DRY_MODE_PARAM = "DRY_MODE";
+    private static final int MAX_DOCS_PER_SOLR_QUERY = 5_000;
     private static final FoxmlUtils foxmlUtils = new FoxmlUtils();
 
     private final FileWrapper updateIssnCnbRootsFileWriter;
@@ -39,6 +40,7 @@ public class SyncFoxmlFieldsWithSolr extends Script {
             put(EnvironmentParam.FEDORA_USER.name(), "fedoraAdmin");
             put(EnvironmentParam.FEDORA_PSWD.name(), "fedoraAdmin");
             put(EnvironmentParam.SOLR_HOST.name(), "http://localhost:8983/solr/kramerius");
+            put(DRY_MODE_PARAM, false);
         }};
         final SyncFoxmlFieldsWithSolr script = new SyncFoxmlFieldsWithSolr(params);
         script.run();
@@ -86,11 +88,13 @@ public class SyncFoxmlFieldsWithSolr extends Script {
 
                 if (isModified(inputDoc) && !paramMap.isDryMode()) {
                     log.info("Update " + uuid + " in destination Solr instance.");
-                    solrClient.addSolrInputDocument(inputDoc);
+                    solrClient.add(inputDoc);
                     updateIssnCnbRootsFileWriter.writeLine(uuid);
-                } else if (!paramMap.isDryMode()) {
+                } else if (!isModified(inputDoc)) {
                     log.info("Can't find ISSN nor CNB for " + uuid);
                     notUpdated.writeLine(uuid);
+                } else {
+                    log.info("Dry mode is on, don't update Solr instance.");
                 }
             } catch (final Exception e) {
                 log.warn("An exception occurred: " + e.getMessage());
@@ -106,26 +110,26 @@ public class SyncFoxmlFieldsWithSolr extends Script {
     }
 
     private static BiConsumer<Document, SolrInputDocument> createCNBSynchronizer() {
-        return (dcDatastream, solrInputDoc) -> {
+        return (dcDatastream, inputDoc) -> {
             final List<String> listOfCNB = foxmlUtils.getListOfCNBFromFoxml(dcDatastream);
             if (!listOfCNB.isEmpty()) {
                 log.info("Found new CNB flags: " + listOfCNB);
-                final Collection<Object> dcIdentifiers = solrInputDoc.getFieldValues(SolrField.DC_IDENT);
+                final Collection<Object> dcIdentifiers = inputDoc.getFieldValues(SolrField.DC_IDENT);
                 dcIdentifiers.addAll(listOfCNB);
 
-                SolrUtils.setModify(solrInputDoc, SolrField.DC_IDENT, dcIdentifiers);
-                SolrUtils.setModify(solrInputDoc, SolrField.MODIFIED_DATE, SolrUtils.getCurrentTimeDate());
+                SolrUtils.setModify(inputDoc, SolrField.DC_IDENT, dcIdentifiers);
+                SolrUtils.setModify(inputDoc, SolrField.MODIFIED_DATE, SolrUtils.getCurrentTimeDate());
             }
         };
     }
 
     private static BiConsumer<Document, SolrInputDocument> createISSNSynchronizer() {
-        return (dcDatastream, solrInputDoc) -> {
+        return (dcDatastream, inputDoc) -> {
             final Optional<String> optionalIssn = foxmlUtils.getStrISSNFromFoxml(dcDatastream);
             optionalIssn.ifPresent(issn -> {
                 log.info("Found new ISSN flag: " + issn);
-                SolrUtils.setModify(solrInputDoc, SolrField.ISSN, issn);
-                SolrUtils.setModify(solrInputDoc, SolrField.MODIFIED_DATE, SolrUtils.getCurrentTimeDate());
+                SolrUtils.setModify(inputDoc, SolrField.ISSN, issn);
+                SolrUtils.setModify(inputDoc, SolrField.MODIFIED_DATE, SolrUtils.getCurrentTimeDate());
             });
         };
     }
@@ -156,8 +160,10 @@ public class SyncFoxmlFieldsWithSolr extends Script {
     }
 
     private static SolrInputDocument createSolrInputDoc(final SolrDocument solrDoc) {
+        final String uuid = (String) solrDoc.get(SolrField.UUID);
         final Collection<Object> existingDcIdent = solrDoc.getFieldValues(SolrField.DC_IDENT);
         final SolrInputDocument inputDoc = new SolrInputDocument();
+        inputDoc.addField(SolrField.UUID, uuid);
         inputDoc.addField(SolrField.DC_IDENT, existingDcIdent != null ? existingDcIdent : Collections.emptyList());
         return inputDoc;
     }
@@ -179,7 +185,7 @@ public class SyncFoxmlFieldsWithSolr extends Script {
             fedoraUser = (String) params.getOrDefault(EnvironmentParam.FEDORA_USER.name(), null);
             fedoraPswd = (String) params.getOrDefault(EnvironmentParam.FEDORA_PSWD.name(), null);
             solrHost = (String) params.getOrDefault(EnvironmentParam.SOLR_HOST.name(), null);
-            dryMode = (boolean) params.getOrDefault("DRY_MODE", false);
+            dryMode = (boolean) params.getOrDefault(DRY_MODE_PARAM, false);
         }
     }
 }
