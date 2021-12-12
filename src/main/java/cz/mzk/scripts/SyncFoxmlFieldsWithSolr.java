@@ -16,6 +16,7 @@ import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrInputDocument;
 import org.w3c.dom.Document;
 
+import java.io.IOException;
 import java.util.*;
 import java.util.function.BiConsumer;
 
@@ -25,24 +26,30 @@ public class SyncFoxmlFieldsWithSolr extends Script {
     private final ParamMap paramMap;
     private final static int MAX_DOCS_PER_SOLR_QUERY = 5_000;
     private static final FoxmlUtils foxmlUtils = new FoxmlUtils();
-    private static final FileWrapper updateIssnCnbRootsFileWriter = new FileWrapper("updated-issn-cnb-roots");
-    private static final FileWrapper missingDocInFedora = new FileWrapper("missing-doc-in-fedora");
-    private static final FileWrapper skipped = new FileWrapper("skipping-due-to-exception");
 
-    public static void main(String[] args) {
+    private final FileWrapper updateIssnCnbRootsFileWriter;
+    private final FileWrapper missingDocInFedora;
+    private final FileWrapper skipped;
+    private final FileWrapper notUpdated;
+
+    public static void main(String[] args) throws IOException {
         final Map<String, Object> params = new HashMap<>() {{
-            put(EnvironmentParam.FEDORA_HOST.name(), "");
-            put(EnvironmentParam.FEDORA_USER.name(), "");
-            put(EnvironmentParam.FEDORA_PSWD.name(), "");
-            put(EnvironmentParam.SOLR_HOST.name(), "");
+            put(EnvironmentParam.FEDORA_HOST.name(), "http://localhost:8080/fedora");
+            put(EnvironmentParam.FEDORA_USER.name(), "fedoraAdmin");
+            put(EnvironmentParam.FEDORA_PSWD.name(), "fedoraAdmin");
+            put(EnvironmentParam.SOLR_HOST.name(), "http://localhost:8983/solr/kramerius");
         }};
         final SyncFoxmlFieldsWithSolr script = new SyncFoxmlFieldsWithSolr(params);
         script.run();
     }
 
-    public SyncFoxmlFieldsWithSolr(final Map<String, Object> params) {
+    public SyncFoxmlFieldsWithSolr(final Map<String, Object> params) throws IOException {
         super(params);
         paramMap = new ParamMap(params);
+        updateIssnCnbRootsFileWriter = new FileWrapper("updated-issn-cnb-roots");
+        missingDocInFedora = new FileWrapper("missing-doc-in-fedora");
+        skipped = new FileWrapper("skipping-due-to-exception");
+        notUpdated = new FileWrapper("not-updated");
     }
 
     @SneakyThrows
@@ -80,6 +87,9 @@ public class SyncFoxmlFieldsWithSolr extends Script {
                     log.info("Update " + uuid + " in destination Solr instance.");
                     solrClient.addSolrInputDocument(inputDoc);
                     updateIssnCnbRootsFileWriter.writeLine(uuid);
+                } else if (!paramMap.isDryMode()) {
+                    log.info("Can't find ISSN nor CNB for " + uuid);
+                    notUpdated.writeLine(uuid);
                 }
             } catch (final Exception e) {
                 log.warn("An exception occurred: " + e.getMessage());
@@ -90,6 +100,8 @@ public class SyncFoxmlFieldsWithSolr extends Script {
         solrClient.close(true);
         updateIssnCnbRootsFileWriter.closeFile();
         missingDocInFedora.closeFile();
+        notUpdated.closeFile();
+        skipped.closeFile();
     }
 
     private static BiConsumer<Document, SolrInputDocument> createCNBSynchronizer() {

@@ -9,31 +9,30 @@ import java.util.Date;
 
 @Slf4j
 public class FileWrapper {
-
     private final String fileName;
-    private final String pathToFile;
-    private BufferedWriter bufferedWriter;
+    private final BufferedWriter bufferedWriter;
 
-    public FileWrapper(final String fileName) {
-        this.fileName = getTextFileNameWithDate(fileName);
-        this.pathToFile = getWorkDirLogs() + this.fileName;
+    private static final String outputFolder = Paths.get("").toAbsolutePath() + "/output";
+    private static final SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy-HH:mm:ss");
+
+    public FileWrapper(final String fileName) throws IOException {
+        this.fileName = getFormattedFileName(fileName);
+        final String pathToFile = outputFolder + "/" + this.fileName;
+        final File file = new File(pathToFile);
+        final File parentDirectory = file.getParentFile();
+        if (parentDirectory != null && !parentDirectory.exists() && !parentDirectory.mkdirs()) {
+            throw new IOException("Couldn't create dir: " + parentDirectory);
+        }
+        this.bufferedWriter = new BufferedWriter(new FileWriter(file, true));
     }
 
-    private String getWorkDirLogs() {
-        final String projectDir = Paths.get("").toAbsolutePath().toString();
-        return projectDir + "/logs/";
+    private String getFormattedFileName(final String fileName) {
+        return fileName + "_" + dateFormat.format(new Date()) + ".txt";
     }
 
-    private String getTextFileNameWithDate(final String fileName) {
-        final SimpleDateFormat simpleDate = new SimpleDateFormat("_dd-MM-yyyy-HH:mm:ss");
-        return fileName + simpleDate.format(new Date()) + ".txt";
-    }
-
-    public void writeLine(final String rootUuid) {
+    public void writeLine(final String line) {
         try {
-            final FileWriter fileWriter = new FileWriter(this.pathToFile, true);
-            this.bufferedWriter = new BufferedWriter(fileWriter);
-            this.bufferedWriter.write(rootUuid);
+            this.bufferedWriter.write(line);
             this.bufferedWriter.newLine();
         } catch (IOException e) {
             log.warn("Can't write data to file '" + this.fileName + "'! " + e.getMessage());
@@ -49,5 +48,4 @@ public class FileWrapper {
             e.printStackTrace();
         }
     }
-
 }

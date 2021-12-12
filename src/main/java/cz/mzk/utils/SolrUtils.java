@@ -29,7 +29,6 @@ public class SolrUtils {
     }
 
     public static String filterQueryRootPids() {
-        return "{!frange l=1 u=1 v=eq(" + SolrField.UUID +", " + SolrField.ROOT_PID + ")}";
+        return "{!frange l=1 u=1 v=eq(" + SolrField.UUID +"," + SolrField.ROOT_PID + ")}";
     }
-
 }
