@@ -5,6 +5,7 @@ import cz.mzk.constants.SolrField;
 import cz.mzk.rest.CustomSolrClient;
 import cz.mzk.rest.FedoraRestClient;
 import cz.mzk.service.scriptrunner.Script;
+import cz.mzk.service.scriptrunner.ScriptEnum;
 import cz.mzk.utils.FileWrapper;
 import cz.mzk.utils.FoxmlUtils;
 import cz.mzk.utils.SolrUtils;
@@ -46,10 +47,10 @@ public class SyncFoxmlFieldsWithSolr extends Script {
     public SyncFoxmlFieldsWithSolr(final Map<String, Object> params) throws IOException {
         super(params);
         paramMap = new ParamMap(params);
-        updateIssnCnbRootsFileWriter = new FileWrapper("updated-issn-cnb-roots");
-        missingDocInFedora = new FileWrapper("missing-doc-in-fedora");
-        skipped = new FileWrapper("skipping-due-to-exception");
-        notUpdated = new FileWrapper("not-updated");
+        updateIssnCnbRootsFileWriter = new FileWrapper("updated-issn-cnb-roots", ScriptEnum.FOXML2SOLR_SYNC.getOutputSubFolder());
+        missingDocInFedora = new FileWrapper("missing-doc-in-fedora", ScriptEnum.FOXML2SOLR_SYNC.getOutputSubFolder());
+        skipped = new FileWrapper("skipping-due-to-exception", ScriptEnum.FOXML2SOLR_SYNC.getOutputSubFolder());
+        notUpdated = new FileWrapper("not-updated", ScriptEnum.FOXML2SOLR_SYNC.getOutputSubFolder());
     }
 
     @SneakyThrows
@@ -131,11 +132,20 @@ public class SyncFoxmlFieldsWithSolr extends Script {
 
     private static SolrQuery createFetchAllRootsWithoutRequiredFieldsSolrQuery() {
         final SolrQuery solrQuery = new SolrQuery();
-        solrQuery.setQuery(
-                (SolrUtils.queryNoFieldValue(SolrField.ISSN) + " OR " +
-                        SolrUtils.queryNoStrFieldValueByRegex(SolrField.DC_IDENT, "cnb")) + " OR " +
-                (SolrUtils.queryFieldValue(SolrField.ISSN, "") + " OR " +
-                        SolrUtils.queryNoStrFieldValueByRegex(SolrField.DC_IDENT, "cnb")));
+        final String queryStr = SolrUtils.queryBuilder()
+                .complex(expr -> expr
+                        .empty(SolrField.ISSN)
+                        .or()
+                        .notRegex(SolrField.DC_IDENT, "cnb")
+                )
+                .or()
+                .complex(expr -> expr
+                        .is(SolrField.ISSN, "")
+                        .or()
+                        .notRegex(SolrField.DC_IDENT, "cnb")
+                )
+                .build();
+        solrQuery.setQuery(queryStr);
         solrQuery.addFilterQuery(SolrUtils.filterQueryRootPids());
         solrQuery.setRows(MAX_DOCS_PER_SOLR_QUERY);
 

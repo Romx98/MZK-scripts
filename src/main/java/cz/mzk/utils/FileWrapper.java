@@ -15,9 +15,9 @@ public class FileWrapper {
     private static final String outputFolder = Paths.get("").toAbsolutePath() + "/output";
     private static final SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy-HH:mm:ss");
 
-    public FileWrapper(final String fileName) throws IOException {
+    public FileWrapper(final String fileName, final String scriptFolder) throws IOException {
         this.fileName = getFormattedFileName(fileName);
-        final String pathToFile = outputFolder + "/" + this.fileName;
+        final String pathToFile = outputFolder + "/" + scriptFolder + "/" + this.fileName;
         final File file = new File(pathToFile);
         final File parentDirectory = file.getParentFile();
         if (parentDirectory != null && !parentDirectory.exists() && !parentDirectory.mkdirs()) {

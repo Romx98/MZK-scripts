@@ -41,7 +41,7 @@ public class ScriptRunner {
 
         public Optional<Script> build() {
             try {
-                final Script scriptInstance = (Script) Class.forName(scriptName.getScriptClass())
+                final Script scriptInstance = (Script) Class.forName(scriptName.getScriptClassName())
                         .getConstructor(Script.class)
                         .newInstance(scriptParams);
                 return Optional.of(scriptInstance);

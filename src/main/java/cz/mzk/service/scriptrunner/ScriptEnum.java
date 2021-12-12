@@ -6,12 +6,14 @@ import lombok.Getter;
 @Getter
 public enum ScriptEnum {
 
-    FOXML2SOLR_SYNC(SyncFoxmlFieldsWithSolr.class.toString());
+    FOXML2SOLR_SYNC(SyncFoxmlFieldsWithSolr.class.toString(), "foxl2solrsync");
 
     private String name;
-    private final String scriptClass;
+    private final String scriptClassName;
+    private final String outputSubFolder;
 
-    private ScriptEnum(final String scriptClass) {
-        this.scriptClass = scriptClass;
+    ScriptEnum(final String scriptClassName, final String outputSubFolder) {
+        this.scriptClassName = scriptClassName;
+        this.outputSubFolder = outputSubFolder;
     }
 }
