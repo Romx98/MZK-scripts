@@ -1,5 +1,6 @@
 package cz.mzk.rest;
 
+import cz.mzk.constants.SolrField;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.Validate;
 import org.apache.solr.client.solrj.SolrClient;
@@ -9,6 +10,7 @@ import org.apache.solr.client.solrj.impl.HttpSolrClient;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
+import org.apache.solr.common.SolrInputDocument;
 import org.apache.solr.common.params.CursorMarkParams;
 
 import java.io.IOException;
@@ -58,6 +60,8 @@ public class CustomSolrClient {
         Validate.notNull(queryParams);
         Validate.notNull(consumer);
 
+        queryParams.setSort(SolrQuery.SortClause.asc(SolrField.UUID));
+
         try {
             String cursorMark = CursorMarkParams.CURSOR_MARK_START;
             boolean done = false;
@@ -87,6 +91,15 @@ public class CustomSolrClient {
         long numFound = query(queryParams).getNumFound();
         queryParams.setRows(previousRows);
         return numFound;
+    }
+
+    public void add(final SolrInputDocument inputDoc)  {
+        try {
+            solrClient.add(inputDoc);
+        } catch (SolrServerException | IOException e) {
+            log.warn("Can't index a document to the Solr instance! " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 
     public void close(final boolean commit) {

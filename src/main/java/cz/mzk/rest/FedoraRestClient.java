@@ -50,6 +50,10 @@ public class FedoraRestClient {
         return getFedoraResource(fedoraHost + "/objects/" + uuid + "/objectXML");
     }
 
+    public Optional<Document> getDC(final String uuid) {
+        return getDataStream(uuid,DataStreams.DC.name);
+    }
+
     public Optional<Document> getRelsExt(final String uuid) {
         return getDataStream(uuid, DataStreams.RELS_EXT.name);
     }

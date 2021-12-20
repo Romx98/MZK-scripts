@@ -8,16 +8,60 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import javax.xml.xpath.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
 
 @Slf4j
 public class FoxmlUtils {
 
     private final XPathExpression isMemberOfCollectionXPath;
+    private final XPathExpression identifierXPath;
 
     public FoxmlUtils() {
         final XPathFactory xFactory = XPathFactory.newInstance();
         final XPath xmlPath = xFactory.newXPath();
         isMemberOfCollectionXPath = compile("//*[local-name() = 'isMemberOfCollection']/@resource", xmlPath);
+        identifierXPath = compile("//*[local-name() = 'identifier']/text()", xmlPath);
+    }
+
+    public List<String> getListOfCNBFromFoxml(final Document doc) {
+        Validate.notNull(doc);
+
+        return parseIdentifierByValueName(doc, "cnb");
+    }
+
+    public Optional<String> getStrISSNFromFoxml(final Document doc) {
+        Validate.notNull(doc);
+
+        final List<String> listOfISSN = parseIdentifierByValueName(doc, "issn");
+        if (!listOfISSN.isEmpty()) {
+            return Optional.of(listOfISSN.get(0));
+        }
+        return Optional.empty();
+    }
+
+    private List<String> parseIdentifierByValueName(final Document doc, final String valueName) {
+        Validate.notNull(doc);
+        Validate.notBlank(valueName);
+
+        try {
+            final NodeList attrNodes = (NodeList) identifierXPath.evaluate(doc, XPathConstants.NODESET);
+            final List<String> values = new ArrayList<>();
+
+            for (int i = 0; i < attrNodes.getLength(); i++) {
+                final Node attrNode = attrNodes.item(i);
+                if (attrNode.getTextContent().contains(valueName)) {
+                    values.add(attrNode.getTextContent());
+                }
+            }
+            return values;
+        } catch (XPathExpressionException e) {
+            log.warn("Can't retrieve identifier \"" + valueName + "\"");
+            e.printStackTrace();
+            return Collections.emptyList();
+        }
     }
 
     public boolean removeVc(final Document doc, final String vcUuid) {
