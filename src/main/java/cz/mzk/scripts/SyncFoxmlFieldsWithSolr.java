@@ -47,12 +47,13 @@ public class SyncFoxmlFieldsWithSolr extends Script {
     }
 
     public SyncFoxmlFieldsWithSolr(final Map<String, Object> params) throws IOException {
-        super(params);
+        super(ScriptEnum.FOXML2SOLR_SYNC, params);
         paramMap = new ParamMap(params);
-        updateIssnCnbRootsFileWriter = new FileWrapper("updated-issn-cnb-roots", ScriptEnum.FOXML2SOLR_SYNC.getOutputSubFolder());
-        missingDocInFedora = new FileWrapper("missing-doc-in-fedora", ScriptEnum.FOXML2SOLR_SYNC.getOutputSubFolder());
-        skipped = new FileWrapper("skipping-due-to-exception", ScriptEnum.FOXML2SOLR_SYNC.getOutputSubFolder());
-        notUpdated = new FileWrapper("not-updated", ScriptEnum.FOXML2SOLR_SYNC.getOutputSubFolder());
+        final String outputSubFolder = scriptType.getOutputSubFolder();
+        updateIssnCnbRootsFileWriter = new FileWrapper("updated-issn-cnb-roots", outputSubFolder);
+        missingDocInFedora = new FileWrapper("missing-doc-in-fedora", outputSubFolder);
+        skipped = new FileWrapper("skipping-due-to-exception", outputSubFolder);
+        notUpdated = new FileWrapper("not-updated", outputSubFolder);
     }
 
     @SneakyThrows
@@ -98,6 +99,7 @@ public class SyncFoxmlFieldsWithSolr extends Script {
                 }
             } catch (final Exception e) {
                 log.warn("An exception occurred: " + e.getMessage());
+                e.printStackTrace();
                 skipped.writeLine(uuid);
             }
         }, MAX_DOCS_PER_SOLR_QUERY);
@@ -164,7 +166,7 @@ public class SyncFoxmlFieldsWithSolr extends Script {
         final Collection<Object> existingDcIdent = solrDoc.getFieldValues(SolrField.DC_IDENT);
         final SolrInputDocument inputDoc = new SolrInputDocument();
         inputDoc.addField(SolrField.UUID, uuid);
-        inputDoc.addField(SolrField.DC_IDENT, existingDcIdent != null ? existingDcIdent : Collections.emptyList());
+        inputDoc.addField(SolrField.DC_IDENT, existingDcIdent != null ? existingDcIdent : new ArrayList<>());
         return inputDoc;
     }
 

@@ -1,5 +1,6 @@
 package cz.mzk.rest;
 
+import cz.mzk.constants.SolrField;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.Validate;
 import org.apache.solr.client.solrj.SolrClient;
@@ -58,6 +59,8 @@ public class CustomSolrClient {
     public void paginate(final SolrQuery queryParams, final Consumer<SolrDocument> consumer) {
         Validate.notNull(queryParams);
         Validate.notNull(consumer);
+
+        queryParams.setSort(SolrQuery.SortClause.asc(SolrField.UUID));
 
         try {
             String cursorMark = CursorMarkParams.CURSOR_MARK_START;

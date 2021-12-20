@@ -6,6 +6,7 @@ import java.util.Map;
 
 @AllArgsConstructor
 abstract public class Script {
-    private Map<String, Object> params;
+    protected final ScriptEnum scriptType;
+    private final Map<String, Object> params;
     abstract public void run();
 }
